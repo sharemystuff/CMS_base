@@ -1,0 +1,284 @@
+############################################################
+#   CMS BASE - DOCUMENTO DE CONTEXTO PARA IA (v1.0)  #
+############################################################
+# Usuario: Pelín (Developer & Project Lead, fanático de Les Luthiers)
+# Fecha de actualización: Marzo 2026
+# Misión: Mantener la coherencia técnica y evitar repetir errores pasados.
+# Descripción: El CMS BASE es un sitio web basado en PHP, HTML, CSS y JAVASCRIPT pensado para ser usado como la base de todos los proyectos de Pelín, ya sean grandes o pequeños. Es parecido a Wordpress pero muchísimo más sencillo y con menos código inútil. Sin embargo, es un sistema centrado en la extrema seguridad para los usuarios.
+# Alcance: Como es un CMS base, se podrá aplicar a cualquier tipo de necesidad, ya sea una tienda online, una sitio personal, para una empresa, un negocio, etc. Cuenta con las opciones básicas para que funcione. Por eso no es necesario adornarlo con funcionalidades para la comodidad de un usuario normal. Es más parecido a un Framework personalizado para Pelín. Puedes sugerir approaches para lograr los objetivos de Pelín.
+# Contexto: Pelín es un desarrollador freelance especializado en HTML, CSS, JAVASCRIPT, PHP y rara vez NODEJS. Realiza proyectos a todo tipo de clientes. Generalmente los proyectos son sitios web o también otros servicios digitales como Restauración fotográfica, edición de audio y video, diseño gráfico.
+
+============================================================
+1. ESPECIFICACIONES DE DESARROLLO
+============================================================
+- SEGURIDAD EXTREMA: el login del sitio debe estar ultra protegido contra todo tipo de amenazas. Debe manejar:
+    - Ataques de fuerza bruta como los Ataque de Diccionario, Credential Stuffing 
+    - Explotación de Vulnerabilidades como la Inyección SQL (SQLi), XSS (Cross-Site Scripting)
+    - Phishing de Administración
+    - Endpoints descuidados
+    - Peticiones AJAX sin protección
+    - Malware en el Servidor (Backdoors) siempre que sea posible.
+- REUTILIZACIÓN DE FUNCIONES: en vez de escribir código php para cada página del sitio, se harán funciones flexibles que permitan aprovechar al máximo el código escrito.
+- NUNCA ROMPER CÓDIGO EXITOSO: si algunas funciones, código o diseño ya funciona bien, no tocarlo al escribir código nuevo.
+- URLs LIMPIAS: aunque internamente php trabajará con hashes y variables, la url siempre será amigable. Ejemplo: "index.php?pagina=23" siempre debería mostrarse "/productos/".
+- WORDPRESS LIKE: Worpress divide su contenido en 2 tipos, cronológico y estático. Nuestro proyecto también dividirá el contenido de la misma manera:
+    - Páginas (custom pages): contenido estático para información que "siempre está ahí" y no depende del tiempo. (Contacto, Quiénes somos, etc)
+    - Items (custom posts): un tipo de contenidos cronologico organizado por categorias, etiquetas, fechas
+- IMPLEMENTACIÓN MODULAR: el sitio debe ser flexible para todo tipo de proyectos. Por defecto el sitio manejará un tipo de contenido que llamaremos "Artículos" (posts). Deben poder agregarse nuevos tipos de contenido siguiendo algunas reglas básicas
+- TIPOS DE CONTENIDO: Pelín podrá agregar cualquier "tipo de contenido" al proyecto según las necesidades de su cliente. Bastará con agregar una carpeta dentro de "admin/contenidos/" con los archivos necesarios (estilo plugins) para que se integre de forma robusta al sistema CMS BASE. Cada tipo de contenido tendrá sus propios Items, páginas, js, css, etc, según necesite para su funcionamiento. Los modulos se podrán reutilizar en futuros proyectos.
+- TEMPLATES: Se usarán estructuras estilo templates en el sitio web, para reutilizar codigo. Por ejemplo, el footer y el header tanto de admin como de public tienen el prefijo sec- (sección) y se integran dinamicamente para formar las páginas. Cuando se usen módulos, estos deberán tener sus propios sec-header sec-aside, etc, para tener más flexibilidad con el diseño.
+
+-------- falta información. se proveerá más adelante -------
+
+============================================================
+2. EL CEREBRO: BASE DE DATOS (MySql)
+============================================================
+Tabla 'usuarios' - Campos exactos (No inventar nombres):
+- id: INTEGER PK AUTOINCREMENT
+- nombre: TEXTO       el nombre de la persona (solo se mostrará en admin)
+- nickname: TEXTO     el nombre público (solo se mostrará en public)
+- email:              el correo electrónico de la persona
+- rol:                (admin, owner, editor)
+- fecha:              fecha de creación del usuario
+- special_key:        clave de seguridad creada con el único proposito de recuperar la contraseña
+
+Tabla 'opciones' - Campos exactos (No inventar nombres):
+- id: INTEGER PK AUTOINCREMENT
+- opcion_id:            la id de la opción
+- opcion_key:           el nombre de la opción
+- opcion_dato:          la opción misma
+
+Tabla 'posts' - Campos exactos (No inventar nombres):
+- id: INTEGER PK AUTOINCREMENT
+- tipo: TEXTO         el tipo de contenido: page, articulo (según el módulo: producto, servicio, aviso, vehículo, etc)
+- titulo: TEXTO       el titulo del post
+- url: TEXTO          la url amigable para el post
+- contenido: TEXTO    el contenido html o texto puro
+- opengraph:          array con titulo y descripción para opengraph
+- imagen: TEXTO       url de la imagen que acompaña al post
+- fecha: FECHA        fecha de creación
+- autor: INTEGER      la id del usuario que creo el post
+- categorias:         array de categorias. (se obtienen del config de cada módulo)
+- etiquetas:          array con las id de las etiquetas creadas por los usuarios
+
+Tabla 'user_meta' - Campos exactos (No inventar nombres) es para guardar campos adicionales para un usuario según cada módulo necesite:
+- id: INTEGER PK AUTOINCREMENT
+- user_id:            la id del usuario
+- user_key:           el nombre del campo
+- user_dato:          el dato de ese campo
+
+Tabla 'post_meta' - Campos exactos (No inventar nombres) es para guardar campos adicionales para un post según cada módulo necesite:
+- id: INTEGER PK AUTOINCREMENT
+- post_id:            la id del post
+- post_key:           el nombre del campo
+- post_dato:          el dato de ese campo
+
+-------- falta información. se proveerá más adelante -------
+
+============================================================
+3. FUNCIONES BÁSICAS
+============================================================
+- function random_pass()
+    La función crea un password ultra seguro de 16 caracteres.
+    La función devuelve el password ultra seguro
+
+- function create_user($nombre, $nickname, $rol, $password)
+    $nombre: el nombre del usuario.
+    $nickname: (opcional) el nombre público del usuario
+    $rol: "admin", "owner", "editor" el rol o privilegio asignado al usuario
+    La función guarda la información entregada en la base de datos en la tabla "usuarios". Si todo sale bien, devuelve la id que la base de datos asignó al usuario.
+    Si $nombre no existe, devuelve json con "["error","nombre"] 
+    Si $rol no existe, devuelve json con "["error","rol"] 
+    Si $password no existe, devuelve json con "["error","password"]
+
+- function create_opcion($opcion, $valor)
+    $opción: el nombre de la opción (opcion_key).
+    $valor: la opción misma.
+    La función guarda una opción entregada en la base de datos en la tabla "opciones". Si todo sale bien, devuelve la id que la base de datos asignó a la opción.
+    Si $opción no existe, devuelve FALSE
+    Si $valor no existe, guardará la opción con el valor vacío y devolverá la id que la base de datos asignó a la opción.
+
+- function email_valido($email)
+    $email: dirección de email entregada en un formulario
+    La función sanitiza agresivamente el string y luego evalúa si es un email válido
+    Si es válido la función devuelve TRUE
+    Si el email no es válido devuelve FALSE.
+
+- function user_existe($user)
+    $user: Puede ser la id o el email del usuario.
+    La función sanitiza $user y detecta si es un numero (id) o es un email. Si es un email, lo revisa con email_valido(). Si es válido, lo busca en la base de datos de usuarios. 
+    Si el usuario existe, la función devuelve TRUE.
+    Si el usuario no existe, la función devuelve FALSE.
+
+- function get_user($id, $metadatos)
+    $id: INT id del usuario.
+    $metadatos: TRUE (opcional)
+    Devolverá un objeto con todos los campos del usuario de la tabla "usuarios". 
+    Si $metadatos es TRUE, devolverá dentro del objeto también los metadatos asociados a ese usuario de la tabla user_meta.
+    Si $metadatos no ha sido declarado, solo devolverá los datos de la tabla "usuarios".
+    Si $id no existe, la función devolverá FALSE.
+
+- function get_user_meta($id, $meta)
+    $id: INT id del usuario.
+    $meta: nombre del metadato (user_key).
+    Devolverá un string con el user_dato del user_key solicitado.
+    Si $id no existe, la función devolverá FALSE.
+    Si $meta no existe, la función devolverá todos los metadatos del usuario en un objeto.
+    
+- function get_post($id, $tipo, $metadatos)
+    $id: INT id del post.
+    $metadatos: TRUE (opcional)
+    Devolverá un objeto con todos los datos del post de la tabla "posts". 
+    Si $metadatos es TRUE, devolverá dentro del objeto también los metadatos asociados a ese post de la tabla post_meta.
+    Si $metadatos no ha sido declarado, solo devolverá los datos de la tabla "posts".
+    Si $id no existe, la función devolverá FALSE.
+
+- function get_post_meta($id, $meta)
+    $id: INT id del post.
+    $meta: nombre del metadato (post_key).
+    Devolverá un string con el post_dato del post_key solicitado.
+    Si $id no existe, la función devolverá FALSE.
+    Si $meta no existe, la función devolverá todos los metadatos del post en un objeto.
+
+- funtion encode_pass($password) // Debe estar en seguridad/funciones.php
+    $password: contraseña ingresada en un formulario.
+    Codifica la contraseña entregada pasándola por diferentes filtros (SHA, MD5, custom filter, etc). La transforma en un string de 20 caracteres.
+    Si $password no existe, la función devolverá FALSE
+
+-------- falta información. se proveerá más adelante -------
+
+============================================================
+4. EL FLOW: ASÍ FUNCIONA CMS BASE
+============================================================
+- INICIO: Un script debe revisar si hay conexión con la base de datos. Si no lo hay, invocará a tovi/pacheco.php para que inicie el proceso de instalación. Todo el contenido y lógica de funcionamiento de la primera instalación debe estar guardado en tovi/pacheco.php el cual debe estar muy protegido. Por ejemplo, si alguien lo ejecuta directamente a través de la url (www.xxxx.com/tovi/pacheco.php) no debe ejecutarse. Solo debe ser accesible al ser invocado por otro php luego de comprobarse que no existe la base de datos. Al cargar por primera vez el sitio web, solicitará en un formulario las credenciales para conectarse a la base de datos (db.php). Ahí mostrará un formulario sencillo donde solicita la información para conectarse a la base de datos. Una vez entregada por el usuario, se intentará la conexión a la base datos. Si no funciona, volverá a solicitarla al usuario. Si funciona, escribirá las credenciales MySql en el archivo api/db.php. Creará la base de datos con lo necesario para que funcione el sitio. Abrirá un nuevo formulario para crear el usuario admin:
+    - email del usuario
+    - password (sugerirá uno con random_pass())
+Al guardar, el script php usará la función encode_pass() para guardar el usuario admin. También usará la función create_opcion() para guardar las siguientes opciones, pero vacías: "email", "telefono", "direccion", "og_titulo", "og_descripcion", "og_imagen", "mailer_host", "mailer_username", "mailer_password", "mailer_port"
+La opción "registro" debe guardarse con el valor 1.
+
+    - "email"              el email público del cliente
+    - "telefono"           el numeros de telefono publicos
+    - "direccion"          dirección pública del cliente
+    - "og_titulo"          titulo para ser usado por opengraph por defecto
+    - "og_descripcion"     descripción del sitio para ser usado por opengraph por defecto
+    - "og_imagen"          url de la imagen para ser usado por opengraph por defecto
+    - "mailer_host"        para SwiftMailer
+    - "mailer_username"    para SwiftMailer
+    - "mailer_password"    para SwiftMailer
+    - "mailer_port"        para SwiftMailer
+    - "registro"           0 o 1 para habilitar el formulario de registro de usuarios
+
+- Mostrará entonces la página de inicio de CMS BASE, ubicada en public/index.php
+- LOGIN: La página de login se ubica en public/login.php. Debe contener un diseño extremadamente básico y sencillo (para modificarlo después según el cliente). Debe tener:
+    - campo de email
+    - campo de contraseña
+    - check de "recuerdame"
+    - link de olvidé mi contraseña
+    - link a registro (la opción está activada por defecto)
+
+El formulario debe tener todas las medidas de protección que existen en PHP. Incluye las siguientes medidas en los formularios login (public/login.php) y registro (public/registro.php):
+    - La primera barrera debe ser HTML con "required" en los campos. 
+    - Después incluye validación con javascript. 
+    - También hay que validar con el servidor. 
+    - Puedes usar la funciones email_valido() user_existe(). 
+    - Los mensajes de error o que falta un dato deben verse en el formulario cuando ocurran. 
+    - Debes implementar Protección CSRF (Cross-Site Request Forgery) utilizando tokens ocultos y únicos en los formularios para asegurar que la solicitud POST proviene de su sitio y no de un atacante.
+    - Sanitización de Entradas (XSS) filtrando los caracteres especiales para prevenir inyecciones de script (<script>, alert()) antes de almacenar o mostrar datos. En "seguridad/funciones.php" crea todas las funciones que veas necesarias relacionadas con la seguridad.
+    - Método HTTP Correcto utilizando siempre method="POST" para enviar información sensible o modificar datos, en lugar de GET, para evitar que los datos queden expuestos en la URL.
+    - Atributo autocomplete: Utiliza el atributo autocomplete="off" para evitar que el navegador guarde información crítica.
+Si todo el proceso de logueo resulta bien, entonces podemos entrar a la página de administración (admin/admin.php)
+Si el usuario falla el logueo por quinta vez, debe aparecer un mensaje que dice que debe esperar 5 minutos para volver a intentar loguearse. 
+La página de logueo no debe estár accesible para ese usuario. Para identificar y generar su identidad (no sabemos quién es porque no se ha logueado) podemos usar información de su navegador combinada con la del hardware y con la de su IP. O quizá solamente su IP. Esa información la guardamos en la base de datos, en la tabla "opciones" con el identificador que hayamos creado del visitante y la hora a la que puede volver a loguearse. 
+Se puede seguir esta lógica (aproach):
+- cuando un visitante entra a la pagina de logueo, un script de seguridad (funcion) crea un identificador único. 
+- Lo busca en las opciones para ver si ya está registrado.
+- Si ya está registrado, y hay numeros de intentos menores a 5, le permitirá ver el formulario.
+- Si falla de nuevo, está registrado y en vez de un número aparece la hora, y la hora actual es menor que la hora registrada, muestra el mensaje que debe esperar.
+- Si no está registrado, entonces puede ver el formulario. 
+- Si falla una vez, se guardará en las opciones su identificador unico y el número 1.
+- Si vuelve a fallar, el numero 2
+- Si falla de nuevo y ya está el número es 5, entonces mostrará el mensaje que debe esperar.
+- Borrará el numero 5 y lo reemplazará por la hora correspondiente dentro de 5 minutos.
+
+Si tienes un aproach mucho mejor, mas inteligente, mas sencillo pero igual o superior en seguridad, sugiéremelo.
+
+Si el visitante olvidó su password, será dirigido a la pagina de recuperación de contraseña (public/recuperar.php). Allí debe haber un formulario donde pueda ingresar su email. El script tomará todas las medidas de seguridad antes mencionadas y revisará si el email existe entre los usuarios. 
+- Si el email existe entre los usuarios, lo llevará a la página para resetear su contraseña (public/reset.php). Al mismo tiempo se enviará un correo al email del usuario. Ese email incluirá un link a www.xxxxx.com/recuperacion/?special_key={unos 50 caracteres aquí} y otros datos para que sea seguro. Se generará un special_key que se guardará en la base de datos en el campo special_key del usuario. Esa special_key debe durar solo unos minutos o 1 hora máximo (no sé cuánto tiempo es mejor para la seguridad)
+- Si el email no existe entre los usuarios, aparecerá un mensaje diciendo que el email no existe en nuestro sistema.
+Cuando el usuario haga click en el link de su correo, public/reset.php mostrará un formulario con dos campos que le permitirá ingresar una nueva contraseña. El primer campo mostrará una sugerencia de contraseña creada con random_pass. Si acepta la sugerencia el segundo campo se bloqueará y podrá presionar el botón para usar su nueva contraseña.Pero si el usuario no acepta usar la sugerencia de contraseña segura, cuando ponga la nueva, tendrá que repetirla en el segundo campo también. Si coinciden, entonces podrá guardar su nueva contraseña. Esta será guardada en la base de datos. Se eliminará la special_key, y se redigirá al usuario a la página de login.
+Si se cumple el tiempo definido para recuperar contraseña, debe borrarse automáticamente el special_key.
+La página public/reset.php no debe ser accesible a menos que incluya un special_key existente. Si alguien trata de entrar directamente la pagina debe redirigirlo al login del sitio.
+
+ADMIN: La pagina de administración debe ser visible solo para usuarios debidamente logueados
+
+-------- falta información. se proveerá más adelante -------
+
+============================================================
+5. ESTRUCTURA ACTUAL DEL PROYECTO
+============================================================
+. 📂 adminBase
+├── 📄 _wildcard.adminbase.mahg-key.pem   Archivo para tener https en local
+├── 📄 _wildcard.adminbase.mahg.pem       Archivo para tener https en local
+└── 📂 admin/
+│  ├── 📄 admin.php                       La administración de todo el backend. Ya tiene un diseño y funcionamiento predefinido. En su interior busca sec-aside sec-footer etc
+│  └── 📂 css/
+│    ├── 📄 admin.css                     Los estilos del admin
+│  └── 📂 js/
+│    ├── 📄 admin.js                      El javascript del admin
+│  ├── 📄 sec-aside.php                   seccion aside del admin
+│  ├── 📄 sec-footer.php                  seccion footer del admin
+│  ├── 📄 sec-header.php                  seccion header del admin
+└── 📂 api/
+│  ├── 📄 db.php                          instrucciones para conectarse a la base de datos
+│  ├── 📄 front-ajax.php                  funciones que sirven para comunicarse con html a traves de ajax
+│  ├── 📄 urls-seo.php                    todas las funciones de código para tener urls amigables
+└── 📂 assets/                            Guarda todos los archivos que son usados en comun por frontend y backend
+│  └── 📂 css/
+│    ├── 📄 themify-icons.css
+│  └── 📂 fonts/
+│    ├── 📄 OpenSans-Bold.woff
+│    ├── 📄 OpenSans-Light.woff
+│    ├── 📄 OpenSans-Regular.woff
+│    ├── 📄 themify.woff
+│  └── 📂 js/
+│    ├── 📄 enrutador.js                  No recuerdo para qué cree ese archivo, jajaja
+│  └── 📂 plugins/                        Para guardar todos los plugin JS que se usen en CMS BASE
+│    ├── 📄 jquery.js                     Librería inmortal
+└── 📂 modulos/                           Aquí se agregarán los diferentes módulos (como plugins) para el CMS
+│  └── 📂 articulos/                      El módulo que está por defecto en el CMS
+│    ├── 📄 config.php                    Las opciones del modulos: nombre categorias posicion en el menu admin etc
+│    ├── 📄 main.php                      La página que aparecerá dentro de admin sobre el modulo
+│  ├── 📄 tipos.php                       Script que manejará los modulos. Debe reconocerlos, ver su configuración y hacer que aparezcan en el admin
+├── 📄 contexto_proyecto.txt              Tu memoria, jajaja
+├── 📄 index.php                          script principal del sitio. Organiza el flujo completo para el sitio se vea
+└── 📂 public/                            carpeta donde se guardan todos los archivos del frontend
+│  ├── 📄 index.php                       página de inicio. En su interior busca sec-header sec-footer etc
+│  ├── 📄 login.php                       formulario de acceso al backend
+│  ├── 📄 pagina.php                      framework para mostrar cualquier página "estática" del sitio o de un módulo.
+│  ├── 📄 post.php                        framework para mostrar cualquier post del sitio o de un módulo
+│  ├── 📄 recuperar.php                   formulario para recuperar contraseña
+│  ├── 📄 registro.php                    formulario para registrarse como usuario
+│  ├── 📄 reset.php                       formulario para resetear la contraseña
+│  ├── 📄 sec-footer.php                  seccion footer para index.php
+│  ├── 📄 sec-header.php                  seccion header para index.php
+└── 📂 seguridad/                         para colocar todos los archivos que contengan funciones y código relacionados con la seguridad del sitio
+│  ├── 📄 funciones.php                   archivo inicial con funciones relacionadas con la seguridad
+└── 📂 tools/                             plugins php, herramientas externas para el funcionamiento del CMS
+│  ├── 📄 composer.json                   Ya está instalado SwiftMailer
+│  ├── 📄 composer.lock
+└── 📂 tovi/                              todas las funciones CORE irán acá separadas en diferentes archivos según su utilidad
+│  ├── 📄 funciones.php
+│  ├── 📄 pacheco.php                     archivo que contiene todas las instrucciones para instalar desde cero CMS BASE
+└── 📂 uploads/                           aquí estarán todos los archivos subidos por los usuarios (fotos de perfil, fotos opara posts, etc)
+
+
+============================================================
+6. ESTADO ACTUAL Y PRÓXIMOS PASOS
+============================================================
+El proyecto solo tiene el funcionando el template de admin. No tiene funcionalidades. Solo los menú y efectos de botones.
+
+Hay que empezar con la instalación y el login
+
+
+
+############################################################
