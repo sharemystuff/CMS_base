@@ -7,6 +7,7 @@
 # Descripción: El CMS BASE es un sitio web basado en PHP, HTML, CSS y JAVASCRIPT pensado para ser usado como la base de todos los proyectos de Pelín, ya sean grandes o pequeños. Es parecido a Wordpress pero muchísimo más sencillo y con menos código inútil. Sin embargo, es un sistema centrado en la extrema seguridad para los usuarios.
 # Alcance: Como es un CMS base, se podrá aplicar a cualquier tipo de necesidad, ya sea una tienda online, una sitio personal, para una empresa, un negocio, etc. Cuenta con las opciones básicas para que funcione. Por eso no es necesario adornarlo con funcionalidades para la comodidad de un usuario normal. Es más parecido a un Framework personalizado para Pelín. Puedes sugerir approaches para lograr los objetivos de Pelín.
 # Contexto: Pelín es un desarrollador freelance especializado en HTML, CSS, JAVASCRIPT, PHP y rara vez NODEJS. Realiza proyectos a todo tipo de clientes. Generalmente los proyectos son sitios web o también otros servicios digitales como Restauración fotográfica, edición de audio y video, diseño gráfico.
+# Entorno de desarrollo: Servidor Virtual de XAMPP "https://www.adminbase.mahg/"
 
 ============================================================
 1. ESPECIFICACIONES DE DESARROLLO
@@ -294,8 +295,8 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 ============================================================
 7. REGLAS DE ORO APRENDIDAS DURANTE EL DESARROLO DEL CMS
 ============================================================
-- "Prioridad absoluta al desarrollo incremental y testeo temprano: no se avanzará en capas superiores de código sin haber verificado la funcionalidad de las bases (Evitar el 'efecto cascada' de errores). 
-- Cada archivo entregado por la IA debe comenzar con un comentario en la primera línea indicando su ruta relativa (ej: /* carpeta/archivo.php */) para facilitar la organización y el despliegue rápido."
+- Prioridad absoluta al desarrollo incremental y testeo temprano: no se avanzará en capas superiores de código sin haber verificado la funcionalidad de las bases (Evitar el 'efecto cascada' de errores). 
+- Cada archivo entregado por la IA debe comenzar con un comentario en la primera línea dentro de "<?php" indicando su ruta relativa (ej: /* carpeta/archivo.php */) para facilitar la organización, checkeo y el despliegue rápido.
 
 ============================================================
 8. ESTADO ACTUAL Y PRÓXIMOS PASOS

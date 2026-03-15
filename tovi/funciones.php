@@ -1,55 +1,65 @@
 <?php
+/* tovi/funciones.php */
+
 /**
  * CMS BASE - FUNCIONES CORE (TOVI)
- * Funciones reutilizables para la gestión de datos y usuarios.
+ * Este archivo centraliza las operaciones base de datos.
  */
 
 /**
- * Registra un nuevo usuario en la base de datos. [cite: 33]
- * @param string $nombre Nombre real del usuario. [cite: 34]
- * @param string $nickname Nombre público. [cite: 34]
- * @param string $email Correo electrónico.
- * @param string $rol admin, owner o editor. [cite: 34]
- * @param string $password Contraseña que será hasheada.
- * @return int|string ID del usuario o JSON con error si falta algún dato. [cite: 35, 36]
+ * Ejecuta la creación de la estructura de la DB.
+ * @param array $datos_db Host, usuario, password y nombre de la DB.
+ * @return mysqli|bool Conexión si tuvo éxito, false si no.
  */
-function create_user($nombre, $nickname, $email, $rol, $password) {
-    global $conexion; // Reutiliza la conexión de api/db.php
-
-    // Validaciones de seguridad solicitadas por Pelín [cite: 36]
-    if (!$nombre) return json_encode(["error", "nombre"]);
-    if (!in_array($rol, ['admin', 'owner', 'editor'])) return json_encode(["error", "rol"]);
-    if (!$password) return json_encode(["error", "password"]);
-
-    // Hasheamos antes de guardar para mayor seguridad.
-    $pass_encoded = encode_pass($password);
-    $fecha = date("Y-m-d H:i:s"); // [cite: 27]
-
-    // Usamos Prepared Statements para evitar Inyección SQL (SQLi). 
-    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
+function pacheco_instalar($datos_db) {
+    // El @ evita que PHP lance un Warning visual, manejamos el error nosotros.
+    $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
     
-    if ($stmt->execute()) {
-        return $conexion->insert_id; // Devuelve la ID asignada por la DB. [cite: 35]
+    if ($conn->connect_error) {
+        return false;
     }
-    return false;
+
+    // Creación de la base de datos con cotejamiento universal
+    $db_name = $conn->real_escape_string($datos_db['name']);
+    $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $conn->select_db($db_name);
+
+    // Definición de tablas con nombres de campos exactos según el documento de contexto
+    $tablas = [
+        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT",
+        "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255), opcion_dato TEXT",
+        "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
+        "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
+        "post_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, post_id INT, post_key TEXT, post_dato TEXT"
+    ];
+
+    foreach ($tablas as $nombre => $campos) {
+        $conn->query("CREATE TABLE IF NOT EXISTS `$nombre` ($campos)");
+    }
+
+    return $conn;
 }
 
 /**
- * Crea o guarda una opción de configuración. [cite: 37]
- * @param string $opcion El nombre (clave) de la opción.
- * @param mixed $valor El contenido de la opción.
- * @return int|bool ID de la opción creada o false en caso de error.
+ * Registra un nuevo usuario en la base de datos.
+ * @param string $nombre Nombre real del usuario.
+ * @param string $nickname Nombre público.
+ * @param string $email Correo electrónico.
+ * @param string $rol admin, owner o editor.
+ * @param string $password Contraseña que será hasheada.
+ * @return int|bool ID del usuario creado o false.
  */
-function create_opcion($opcion, $valor) {
-    global $conexion;
-    if (!$opcion) return false;
-    
-    // Si el valor no existe, lo guardamos vacío pero creamos la opción. [cite: 37]
-    $valor_final = $valor ?? "";
-    
-    $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
-    $stmt->bind_param("ss", $opcion, $valor_final);
+function create_user($nombre, $nickname, $email, $rol, $password) {
+    global $conexion; 
+
+    if (!$nombre || !$nickname || !$email || !$password) return false;
+
+    // Hasheamos usando BCRYPT
+    $pass_encoded = encode_pass($password);
+    $fecha = date("Y-m-d H:i:s");
+
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
     
     if ($stmt->execute()) {
         return $conexion->insert_id;
@@ -58,15 +68,33 @@ function create_opcion($opcion, $valor) {
 }
 
 /**
- * Verifica si un usuario ya existe en el sistema. [cite: 38]
- * Puede buscar por ID numérica o por Email. [cite: 38]
+ * Crea o guarda una opción de configuración.
+ * @param string $opcion_key El nombre único de la opción.
+ * @param mixed $valor El contenido.
+ * @return int|bool ID de la opción o false.
+ */
+function create_opcion($opcion_key, $valor) {
+    global $conexion;
+    if (!$opcion_key) return false;
+    
+    $valor_final = $valor ?? "";
+    
+    $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
+    $stmt->bind_param("ss", $opcion_key, $valor_final);
+    
+    if ($stmt->execute()) {
+        return $conexion->insert_id;
+    }
+    return false;
+}
+
+/**
+ * Verifica si un usuario ya existe por Email o ID.
  * @param mixed $user ID o Email.
- * @return bool True si existe, False si no. [cite: 40]
+ * @return bool
  */
 function user_existe($user) {
     global $conexion;
-    
-    // Detectamos si es email o ID. [cite: 38]
     $campo = email_valido($user) ? "email" : "id";
     
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE $campo = ?");
@@ -74,6 +102,5 @@ function user_existe($user) {
     $stmt->execute();
     $resultado = $stmt->get_result();
     
-    // Si hay más de 0 filas, el usuario existe. [cite: 39]
     return ($resultado->num_rows > 0);
 }
