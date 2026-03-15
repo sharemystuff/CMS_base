@@ -6,3 +6,4 @@ define('BASE_URL', 'https://' . $_SERVER['HTTP_HOST']. '/' );
 include "public/index.php";
 
 echo "Hola a todos";
+echo "Adiós a todos";
