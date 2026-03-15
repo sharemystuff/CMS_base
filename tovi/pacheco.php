@@ -1,41 +1,81 @@
 <?php
-/**
- * CMS BASE - INSTALADOR "PACHECO"
- * Maneja la creación de tablas y la configuración inicial de MySql. [cite: 59, 66]
- */
+/* tovi/pacheco.php  */
 
 /**
- * Ejecuta la creación de la estructura de la DB. [cite: 66]
- * Utiliza los nombres de campos exactos definidos en el contexto. [cite: 26]
- * @param array $datos_db Array con host, usuario, password y nombre de la DB. [cite: 62]
- * @return mysqli|bool Objeto de conexión si tuvo éxito, false si no. [cite: 65]
+ * CMS BASE - Instalador Visual "Pacheco"
+ * Basado en el flujo de instalación definido por Pelín.
  */
-function pacheco_instalar($datos_db) {
-    // Intentamos la conexión al servidor MySQL. [cite: 64]
-    $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
+
+// Evitamos que se acceda si el sistema ya está configurado
+// (En el futuro, index.php definirá esta constante solo si db.php falta)
+if (!defined('INSTALACION_PERMITIDA')) {
+    // Por ahora, para pruebas, puedes comentar la línea de abajo
+    // die("Acceso denegado: El sistema ya está instalado.");
+}
+
+$error = "";
+
+// PROCESAMIENTO DEL FORMULARIO
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
     
-    if ($conn->connect_error) return false;
-
-    // Creamos la base de datos si no existe. [cite: 66]
-    $conn->query("CREATE DATABASE IF NOT EXISTS " . $datos_db['name']);
-    $conn->select_db($datos_db['name']);
-
-    /**
-     * Definición de tablas según el documento de contexto de Pelín.
-     * Respetamos nombres de campos y tipos de datos. [cite: 26, 27, 28]
-     */
-    $tablas = [
-        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, rol TEXT, fecha DATETIME, password TEXT, special_key TEXT",
-        "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255), opcion_dato TEXT",
-        "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
-        "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
-        "post_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, post_id INT, post_key TEXT, post_dato TEXT"
+    $datos_db = [
+        'host' => $_POST['db_host'],
+        'user' => $_POST['db_user'],
+        'pass' => $_POST['db_pass'],
+        'name' => $_POST['db_name']
     ];
 
-    // Ejecutamos la creación de cada tabla.
-    foreach ($tablas as $nombre => $campos) {
-        $conn->query("CREATE TABLE IF NOT EXISTS $nombre ($campos)");
-    }
+    // Intentamos la instalación usando la función lógica que creamos antes
+    // Nota: Esta función debe estar disponible o incluida
+    $resultado = pacheco_instalar($datos_db);
 
-    return $conn;
+    if ($resultado) {
+        // SI FUNCIONA: Escribimos el archivo api/db.php (Siguiente paso lógico)
+        // Por ahora, solo mostramos éxito para probar la conexión
+        echo "<div style='background:green; color:white; padding:20px;'>✅ Conexión exitosa y tablas creadas.</div>";
+    } else {
+        $error = "❌ No se pudo conectar a la base de datos. Revisa los datos.";
+    }
 }
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Instalador Pacheco - CMS BASE</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #eee; display: flex; justify-content: center; padding-top: 50px; }
+        .card { background: #252525; padding: 30px; border-radius: 8px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1 { color: #1db954; font-size: 1.5rem; text-align: center; }
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: #888; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #333; background: #000; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 25px; background: #1db954; border: none; color: #000; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .error { color: #ff5555; font-size: 0.8rem; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>CMS BASE - Instalación</h1>
+        <p style="font-size: 0.8rem; text-align: center;">Configuración de Base de Datos</p>
+
+        <?php if($error): ?> <div class="error"><?php echo $error; ?></div> <?php endif; ?>
+
+        <form method="POST">
+            <label>Servidor (Host)</label>
+            <input type="text" name="db_host" value="localhost" required>
+
+            <label>Usuario MySQL</label>
+            <input type="text" name="db_user" placeholder="ej: root" required>
+
+            <label>Contraseña MySQL</label>
+            <input type="password" name="db_pass" placeholder="Tu contraseña">
+
+            <label>Nombre de la Base de Datos</label>
+            <input type="text" name="db_name" placeholder="ej: cms_base" required>
+
+            <button type="submit" name="instalar_db">CONFIGURAR Y CREAR TABLAS</button>
+        </form>
+    </div>
+</body>
+</html>
