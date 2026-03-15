@@ -297,6 +297,8 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 ============================================================
 - Prioridad absoluta al desarrollo incremental y testeo temprano: no se avanzará en capas superiores de código sin haber verificado la funcionalidad de las bases (Evitar el 'efecto cascada' de errores). 
 - Cada archivo entregado por la IA debe comenzar con un comentario en la primera línea dentro de "<?php" indicando su ruta relativa (ej: /* carpeta/archivo.php */) para facilitar la organización, checkeo y el despliegue rápido.
+- Metodología de entrega de código: La IA debe entregar siempre los archivos en su versión completa (sin recortes por agilidad) para asegurar que el desarrollador pueda copiar y pegar el bloque íntegro sin errores de integración. 
+- Tras cada hito exitoso, se realizará un commit conmemorativo.
 
 ============================================================
 8. ESTADO ACTUAL Y PRÓXIMOS PASOS
