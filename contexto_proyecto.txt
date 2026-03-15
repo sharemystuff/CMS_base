@@ -27,6 +27,7 @@
 - IMPLEMENTACIÓN MODULAR: el sitio debe ser flexible para todo tipo de proyectos. Por defecto el sitio manejará un tipo de contenido que llamaremos "Artículos" (posts). Deben poder agregarse nuevos tipos de contenido siguiendo algunas reglas básicas
 - TIPOS DE CONTENIDO: Pelín podrá agregar cualquier "tipo de contenido" al proyecto según las necesidades de su cliente. Bastará con agregar una carpeta dentro de "admin/contenidos/" con los archivos necesarios (estilo plugins) para que se integre de forma robusta al sistema CMS BASE. Cada tipo de contenido tendrá sus propios Items, páginas, js, css, etc, según necesite para su funcionamiento. Los modulos se podrán reutilizar en futuros proyectos.
 - TEMPLATES: Se usarán estructuras estilo templates en el sitio web, para reutilizar codigo. Por ejemplo, el footer y el header tanto de admin como de public tienen el prefijo sec- (sección) y se integran dinamicamente para formar las páginas. Cuando se usen módulos, estos deberán tener sus propios sec-header sec-aside, etc, para tener más flexibilidad con el diseño.
+- USO DE GITHUB: Revisa mi repositorio en todo momento.
 
 -------- falta información. se proveerá más adelante -------
 
@@ -271,14 +272,29 @@ ADMIN: La pagina de administración debe ser visible solo para usuarios debidame
 │  ├── 📄 pacheco.php                     archivo que contiene todas las instrucciones para instalar desde cero CMS BASE
 └── 📂 uploads/                           aquí estarán todos los archivos subidos por los usuarios (fotos de perfil, fotos opara posts, etc)
 
+============================================================
+6. USO DE GITHUB
+============================================================
+Es IMPORTANTÍSIMO que en este proyecto aproveches la ventaja de usar gitHub. Mi código se irá actualizando cada vez que me des código nuevo. Puedes leer todo directamnte ahí.
+A medida que vamos avanzando, necesito que puedas leer los archivos de este proyecto para no estar copiándolo una y otra vez en el chat.
+
+Puedes leer el raw de todos mis archivos en GitHub
+Mi repositorio: https://github.com/sharemystuff/CMS_base
+
+Los raw:
+https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/ + cualquier archivo que necesites
+
+Ejemplo: 
+quieres leer admin/admin.php
+https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/ + admin/admin.php
+Quedaría así:
+https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/admin.php
 
 ============================================================
-6. ESTADO ACTUAL Y PRÓXIMOS PASOS
+7. ESTADO ACTUAL Y PRÓXIMOS PASOS
 ============================================================
 El proyecto solo tiene el funcionando el template de admin. No tiene funcionalidades. Solo los menú y efectos de botones.
 
 Hay que empezar con la instalación y el login
-
-
 
 ############################################################
