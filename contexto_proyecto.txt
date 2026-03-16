@@ -157,6 +157,7 @@ Tabla 'post_meta' - Campos exactos (No inventar nombres) es para guardar campos 
     - password (sugerirá uno con random_pass())
 Al guardar, el script php usará la función encode_pass() para guardar el usuario admin. También usará la función create_opcion() para guardar las siguientes opciones, pero vacías: "email", "telefono", "direccion", "og_titulo", "og_descripcion", "og_imagen", "mailer_host", "mailer_username", "mailer_password", "mailer_port"
 La opción "registro" debe guardarse con el valor 1.
+La opción "recuerdame" debe guardarse con el valor "14".
 
     - "email"              el email público del cliente
     - "telefono"           el numeros de telefono publicos
@@ -169,6 +170,7 @@ La opción "registro" debe guardarse con el valor 1.
     - "mailer_password"    para SwiftMailer
     - "mailer_port"        para SwiftMailer
     - "registro"           0 o 1 para habilitar el formulario de registro de usuarios
+    - "recuerdame"         La cantidad de días que debe estar activa la sesión. Después de esa cantidad de días, CMS BASE pedirá loguearse de nuevo.
 
 - Mostrará entonces la página de inicio de CMS BASE, ubicada en public/index.php
 - LOGIN: La página de login se ubica en public/login.php. Debe contener un diseño extremadamente básico y sencillo (para modificarlo después según el cliente). Debe tener:
@@ -297,6 +299,7 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 ============================================================
 - Prioridad absoluta al desarrollo incremental y testeo temprano: no se avanzará en capas superiores de código sin haber verificado la funcionalidad de las bases (Evitar el 'efecto cascada' de errores). 
 - Cada archivo entregado por la IA debe comenzar con un comentario en la primera línea dentro de "<?php" indicando su ruta relativa (ej: /* carpeta/archivo.php */) para facilitar la organización, checkeo y el despliegue rápido.
+- Código siempre indentado a 4 espacios. Fundamental para que los humanos entendamos mejor el código.
 - Metodología de entrega de código: La IA debe entregar siempre los archivos en su versión completa (sin recortes por agilidad) para asegurar que el desarrollador pueda copiar y pegar el bloque íntegro sin errores de integración. 
 - Tras cada hito exitoso, se realizará un commit conmemorativo.
 
