@@ -6,19 +6,17 @@ if (!defined('AUTH_SALT')) {
     define('AUTH_SALT', 'CMS_BASE_PROTECTION_2026_PELIN');
 }
 
-// 1. Detección automática de entorno seguro
+// 1. Detección de entorno seguro (HTTPS)
 $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
 
-// 2. Configuración de Sesiones y Cookies dinámica
-ini_set('session.cookie_httponly', 1); // Impide acceso vía JavaScript
-ini_set('session.use_only_cookies', 1); // Evita ataques de fijación de sesión por URL
+// 2. Configuración de Cookies de Sesión
+ini_set('session.cookie_httponly', 1); // Bloquea acceso de JS a la sesión
+ini_set('session.use_only_cookies', 1); // Evita sesión por URL
 
 if ($is_secure) {
-    // Si hay HTTPS (Desarrollo con mkcert o Producción real)
-    ini_set('session.cookie_secure', 1);   // Solo envía la cookie por canales cifrados
-    ini_set('session.cookie_samesite', 'Strict'); // Máxima protección contra CSRF
+    ini_set('session.cookie_secure', 1);   // Solo viaja por HTTPS
+    ini_set('session.cookie_samesite', 'Strict'); // Máxima protección contra CSRF externo
 } else {
-    // Solo para casos de emergencia en HTTP plano
     ini_set('session.cookie_samesite', 'Lax');
 }
 
@@ -31,7 +29,7 @@ require_once __DIR__ . '/../seguridad/funciones.php';
 global $OPC;
 $OPC = get_all_opciones();
 
-// Generación de Token CSRF si no existe
+// Generación de Token CSRF único para la sesión
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -56,14 +54,13 @@ function checking() {
         $res = $stmt->get_result();
 
         if ($user = $res->fetch_assoc()) {
-            session_regenerate_id(true); // Previene Session Fixation
+            session_regenerate_id(true); // Previene fijación de sesión
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
             $_SESSION['user_nickname'] = $user['nickname'];
             $_SESSION['user_rol'] = $user['rol'];
             return true;
         } else {
-            // Limpieza de cookie inválida
             setcookie('session_token', '', time() - 3600, '/');
         }
     }
@@ -75,12 +72,10 @@ function checking() {
  * Valida el Token CSRF y el origen de la petición
  */
 function validarCSRF($token) {
-    // 1. Validar coincidencia de Token (Time-attack safe)
     if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         return false;
     }
 
-    // 2. Validar que la petición venga de nuestro dominio (Referer check dinámico)
     if (isset($_SERVER['HTTP_REFERER'])) {
         $host_peticion = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
         $mi_host = $_SERVER['SERVER_NAME'];
@@ -93,6 +88,6 @@ function validarCSRF($token) {
 }
 
 // 3. Cabeceras de Seguridad Globales
-header("X-Frame-Options: DENY"); // Previene Clickjacking
-header("X-Content-Type-Options: nosniff"); // Previene MIME-sniffing
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");

@@ -2,28 +2,27 @@
 /* api/registro_proceso.php */
 include_once __DIR__ . '/main.php';
 
-// Cargamos el Autoload de Composer
 require __DIR__ . '/../tools/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-$resp = ["status" => "error", "message" => "Solicitud no autorizada (CSRF)"];
+$resp = ["status" => "error", "message" => "Solicitud no autorizada"];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // CAPA DE SEGURIDAD CSRF
+    // VALIDACIÓN CSRF: Bloquea ataques de dominios externos (como lab.mahg)
     $token_recibido = $_POST['csrf_token'] ?? '';
     if (!validarCSRF($token_recibido)) {
         http_response_code(403);
-        echo json_encode($resp);
+        echo json_encode(["status" => "error", "message" => "Token de seguridad inválido o expirado"]);
         exit;
     }
 
     $nombre   = limpiar_entrada($_POST['nombre']);
     $nickname = limpiar_entrada($_POST['nickname']);
     $email    = limpiar_entrada($_POST['email']);
-    $pass     = $_POST['pass'];
+    $pass     = $_POST['pass']; 
 
     if (user_existe($email)) {
         $resp["message"] = "Ese correo ya está registrado.";
@@ -58,15 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->Body    = "
                     <div style='font-family: sans-serif; border: 1px solid #333; padding: 25px; border-radius: 10px; background: #f9f9f9;'>
                         <h2 style='color: #1db954;'>¡Hola $nombre!</h2>
-                        <p>Gracias por registrarte. Para activar tu cuenta y poder acceder al panel, haz clic en el siguiente botón:</p>
+                        <p>Gracias por registrarte. Haz clic en el botón para activar tu cuenta:</p>
                         <div style='text-align: center; margin: 30px 0;'>
                             <a href='$link' style='background: #1db954; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>ACTIVAR MI CUENTA</a>
                         </div>
-                        <p style='font-size: 0.8rem; color: #666;'>Si el botón no funciona, copia y pega este enlace en tu navegador:<br>$link</p>
                     </div>";
 
                 $mail->send();
-                $resp = ["status" => "success", "message" => "¡Registro casi completado! Te hemos enviado un correo de confirmación."];
+                $resp = ["status" => "success", "message" => "Registro completado. Revisa tu email para activar la cuenta."];
 
             } catch (Exception $e) {
                 $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email."];
