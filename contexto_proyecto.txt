@@ -307,11 +307,14 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 ============================================================
 8. ESTADO ACTUAL Y PRÓXIMOS PASOS
 ============================================================
-El proyecto solo tiene el funcionando el template de admin. No tiene funcionalidades. Solo los menú y efectos de botones.
+- CMS BASE ya tiene practicamente toda la sección de login y registro completo. Hay que corregir algunas inconsistencias y errores provocados por la implementación de una robusta seguridad contra todo tipo de ataques externos.
 
-Hay que empezar con la instalación y el login
+Errores:
+- index.php (raíz) da este error: "Fatal error: Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:8 Stack trace: #0 {main} thrown in D:\WWW\adminBase\index.php on line 8"
+- Al cerrar sesión en admin se puede volver a entrar a "admin/admin.php". El acceso sigue permitido.
 
-Cosas locas pendientes:
-- un boton en las opciones de admin para renovar las salts
-
+- Está faltando la sección de recuperación de contraseña y toda la lógica envuelta
+- Está faltando la implementación de url amigables
+- Listado de usuarios
+- perfil básico de usuarios
 ############################################################
