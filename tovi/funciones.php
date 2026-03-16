@@ -3,30 +3,25 @@
 
 /**
  * CMS BASE - FUNCIONES CORE (TOVI)
- * Este archivo centraliza las operaciones base de datos.
  */
 
 /**
  * Ejecuta la creación de la estructura de la DB.
- * @param array $datos_db Host, usuario, password y nombre de la DB.
- * @return mysqli|bool Conexión si tuvo éxito, false si no.
  */
 function pacheco_instalar($datos_db) {
-    // El @ evita que PHP lance un Warning visual, manejamos el error nosotros.
     $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
     
     if ($conn->connect_error) {
         return false;
     }
 
-    // Creación de la base de datos con cotejamiento universal
     $db_name = $conn->real_escape_string($datos_db['name']);
     $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
 
-    // Definición de tablas con nombres de campos exactos según el documento de contexto
+    // Actualizado: Agregada columna session_token a usuarios
     $tablas = [
-        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT",
+        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255)",
         "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255), opcion_dato TEXT",
         "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
         "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
@@ -40,67 +35,33 @@ function pacheco_instalar($datos_db) {
     return $conn;
 }
 
-/**
- * Registra un nuevo usuario en la base de datos.
- * @param string $nombre Nombre real del usuario.
- * @param string $nickname Nombre público.
- * @param string $email Correo electrónico.
- * @param string $rol admin, owner o editor.
- * @param string $password Contraseña que será hasheada.
- * @return int|bool ID del usuario creado o false.
- */
 function create_user($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-
     if (!$nombre || !$nickname || !$email || !$password) return false;
-
-    // Hasheamos usando BCRYPT
     $pass_encoded = encode_pass($password);
     $fecha = date("Y-m-d H:i:s");
-
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
-    
-    if ($stmt->execute()) {
-        return $conexion->insert_id;
-    }
+    if ($stmt->execute()) { return $conexion->insert_id; }
     return false;
 }
 
-/**
- * Crea o guarda una opción de configuración.
- * @param string $opcion_key El nombre único de la opción.
- * @param mixed $valor El contenido.
- * @return int|bool ID de la opción o false.
- */
 function create_opcion($opcion_key, $valor) {
     global $conexion;
     if (!$opcion_key) return false;
-    
     $valor_final = $valor ?? "";
-    
     $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
     $stmt->bind_param("ss", $opcion_key, $valor_final);
-    
-    if ($stmt->execute()) {
-        return $conexion->insert_id;
-    }
+    if ($stmt->execute()) { return $conexion->insert_id; }
     return false;
 }
 
-/**
- * Verifica si un usuario ya existe por Email o ID.
- * @param mixed $user ID o Email.
- * @return bool
- */
 function user_existe($user) {
     global $conexion;
     $campo = email_valido($user) ? "email" : "id";
-    
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE $campo = ?");
     $stmt->bind_param("s", $user);
     $stmt->execute();
     $resultado = $stmt->get_result();
-    
     return ($resultado->num_rows > 0);
 }
