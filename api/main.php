@@ -2,59 +2,69 @@
 /* api/main.php */
 date_default_timezone_set('America/Santiago');
 
+// Definición de Salt de seguridad
 if (!defined('AUTH_SALT')) {
-    define('AUTH_SALT', 'c4ca4238a0b923820dcc509a6f75849b_CMS_BASE_2026');
+    define('AUTH_SALT', 'CMS_BASE_PROTECTION_2026_PELIN');
 }
 
+// Configuración de Sesión Segura
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Lax');
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
-    ini_set('session.cookie_secure', 1);
-}
-
 session_start();
 
+// Inclusiones Core
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/../tovi/funciones.php';
+require_once __DIR__ . '/../seguridad/funciones.php';
+
+// Generar Token CSRF si no existe
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-header("X-Frame-Options: DENY");
-header("X-Content-Type-Options: nosniff");
-header("Referrer-Policy: strict-origin-when-cross-origin");
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
-
-// Conexión - Asegúrate que api/db.php define $conexion como una instancia de mysqli
-include_once __DIR__ . '/db.php';
-
-if (file_exists(__DIR__ . '/../tovi/funciones.php')) include_once __DIR__ . '/../tovi/funciones.php';
-if (file_exists(__DIR__ . '/../seguridad/funciones.php')) include_once __DIR__ . '/../seguridad/funciones.php';
-
+/**
+ * Verifica si el usuario está logueado o tiene cookie de persistencia
+ */
 function checking() {
     global $conexion;
+
+    // 1. Si ya hay sesión activa
     if (isset($_SESSION['user_id'])) {
-        return true; 
+        return true;
     }
-    if (isset($_COOKIE['session_token']) && !empty($_COOKIE['session_token'])) {
+
+    // 2. Si no hay sesión, buscamos la cookie de "Recuérdame"
+    if (isset($_COOKIE['session_token'])) {
         $token = $_COOKIE['session_token'];
-        $stmt = $conexion->prepare("SELECT id, nombre, rol, activo FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
+        
+        $stmt = $conexion->prepare("SELECT id, nombre, nickname, rol, activo FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
         $stmt->bind_param("s", $token);
         $stmt->execute();
         $res = $stmt->get_result();
-        if ($u = $res->fetch_assoc()) {
+
+        if ($user = $res->fetch_assoc()) {
+            // Reconstruimos la sesión
             session_regenerate_id(true);
-            $_SESSION['user_id'] = $u['id'];
-            $_SESSION['user_nombre'] = $u['nombre'];
-            $_SESSION['user_rol'] = $u['rol'];
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_nombre'] = $user['nombre'];
+            $_SESSION['user_nickname'] = $user['nickname'];
+            $_SESSION['user_rol'] = $user['rol'];
             return true;
         } else {
-            setcookie('session_token', '', time() - 42000, '/');
+            // Token inválido o expirado en DB, borramos cookie
+            setcookie('session_token', '', time() - 3600, '/');
         }
     }
+
     return false;
 }
 
 function validarCSRF($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
-?>
+
+// Headers de Seguridad Globales
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");

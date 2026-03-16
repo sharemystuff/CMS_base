@@ -47,30 +47,13 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * Crea el usuario administrador inicial (Sincronizado con password_verify)
- */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    // Usamos BCRYPT: El estándar de oro actual para PHP
-    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
+    $pass_segura = password_hash($password, PASSWORD_BCRYPT); //
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura);
     return $stmt->execute();
-}
-
-/**
- * Crea un usuario pendiente de activación
- */
-function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
-    global $conexion; 
-    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
-    $fecha = date("Y-m-d H:i:s");
-    $token = bin2hex(random_bytes(32));
-    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
-    $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura, $token);
-    return $stmt->execute() ? $token : false;
 }
 
 function user_existe($email) {
@@ -80,11 +63,6 @@ function user_existe($email) {
     $stmt->execute();
     $res = $stmt->get_result();
     return ($res->num_rows > 0);
-}
-
-function random_pass($length = 16) {
-    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
-    return substr(str_shuffle(str_repeat($chars, 5)), 0, $length);
 }
 
 function generar_salt($length = 64) {
