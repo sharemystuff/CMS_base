@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     update_opcion('mailer_username', limpiar_entrada($_POST['mailer_username']));
     update_opcion('mailer_password', $_POST['mailer_password']);
     update_opcion('mailer_port', limpiar_entrada($_POST['mailer_port']));
+    
+    // Refrescamos el array global para que el formulario muestre los cambios al instante
+    $OPC = get_all_opciones();
     $mensaje = "✅ Opciones actualizadas correctamente.";
 }
 ?>
@@ -23,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     <link rel="stylesheet" href="../assets/css/themify-icons.css">
     <link rel="stylesheet" href="admin/css/admin.css">
     <style>
-        /* Ajustes rápidos de legibilidad Mangiacaprini */
+        /* Ajustes de legibilidad */
         .config-form h3 { color: #1db954; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .config-form label { display: block; color: #efefef; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; }
         .config-form input[type="text"], 
@@ -52,27 +55,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
                 
                 <h3>Seguridad y Acceso</h3>
                 <label for="recuerdame">Duración de sesión (días):</label>
-                <input type="number" name="recuerdame" id="recuerdame" value="<?php echo get_opcion('recuerdame'); ?>">
+                <input type="number" name="recuerdame" id="recuerdame" value="<?php echo $OPC['recuerdame'] ?? '14'; ?>">
                 
                 <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 30px; color: #1db954;">
-                    <input type="checkbox" name="registro" <?php echo (get_opcion('registro') == '1') ? 'checked' : ''; ?> style="width:20px; height:20px; margin-right: 15px;">
+                    <input type="checkbox" name="registro" <?php echo (($OPC['registro'] ?? '0') == '1') ? 'checked' : ''; ?> style="width:20px; height:20px; margin-right: 15px;">
                     ¿Permitir nuevos registros de usuarios?
                 </label>
 
-                <h3>Configuración de SwiftMailer (Servidor de Email)</h3>
-                <p style="color: #888; font-size: 0.8rem; margin-bottom: 20px;">Necesario para recuperación de claves y notificaciones.</p>
+                <h3>Configuración de Correo (PHPMailer)</h3>
+                <p style="color: #888; font-size: 0.8rem; margin-bottom: 20px;">Necesario para confirmación de cuentas y notificaciones del sistema.</p>
                 
                 <label>Servidor SMTP (Host)</label>
-                <input type="text" name="mailer_host" value="<?php echo get_opcion('mailer_host'); ?>" placeholder="ej: mail.tusitio.com">
+                <input type="text" name="mailer_host" value="<?php echo $OPC['mailer_host'] ?? ''; ?>" placeholder="ej: mail.tusitio.com">
                 
                 <label>Usuario (Email)</label>
-                <input type="text" name="mailer_username" value="<?php echo get_opcion('mailer_username'); ?>" placeholder="ej: no-reply@tusitio.com">
+                <input type="text" name="mailer_username" value="<?php echo $OPC['mailer_username'] ?? ''; ?>" placeholder="ej: no-reply@tusitio.com">
                 
                 <label>Contraseña</label>
-                <input type="password" name="mailer_password" value="<?php echo get_opcion('mailer_password'); ?>">
+                <input type="password" name="mailer_password" value="<?php echo $OPC['mailer_password'] ?? ''; ?>">
                 
                 <label>Puerto</label>
-                <input type="text" name="mailer_port" value="<?php echo get_opcion('mailer_port'); ?>" placeholder="465 (SSL) o 587 (TLS)">
+                <input type="text" name="mailer_port" value="<?php echo $OPC['mailer_port'] ?? '465'; ?>" placeholder="465 (SSL) o 587 (TLS)">
 
                 <button type="submit" name="save_options" style="background: #1db954; color: #000; padding: 15px 40px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 20px;">
                     <i class="ti-save"></i> Guardar Cambios

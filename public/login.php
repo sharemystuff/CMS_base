@@ -6,7 +6,7 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !validarCSRF($_POST['csrf_token'])) {
-        die("Sesión inválida."); //
+        die("Sesión inválida.");
     }
 
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
@@ -29,19 +29,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_nickname'] = $user['nickname'];
             $_SESSION['user_rol'] = $user['rol'];
 
-            // LÓGICA DE RECUÉRDAME
+            // LÓGICA DE RECUÉRDAME CON HASH (Extrema Seguridad)
             if ($recuerdame) {
-                $token = bin2hex(random_bytes(32));
-                $dias = (int)get_opcion('recuerdame') ?: 14;
+                $token_real = bin2hex(random_bytes(32));
+                $token_hash = hash('sha256', $token_real); // Solo el hash va a la DB
+                
+                $dias = (int)($OPC['recuerdame'] ?? 14);
                 $expira = time() + ($dias * 24 * 60 * 60);
 
-                // Guardar token en DB para este usuario
+                // Guardar el HASH en la base de datos
                 $upd = $conexion->prepare("UPDATE usuarios SET session_token = ? WHERE id = ?");
-                $upd->bind_param("si", $token, $user['id']);
+                $upd->bind_param("si", $token_hash, $user['id']);
                 $upd->execute();
 
-                // Crear cookie segura
-                setcookie('session_token', $token, [
+                // Enviar el TOKEN REAL en la cookie
+                setcookie('session_token', $token_real, [
                     'expires' => $expira,
                     'path' => '/',
                     'domain' => '', 
@@ -54,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: ../admin/admin.php");
             exit;
         } else {
-            $error = "Credenciales incorrectas."; //
+            $error = "Credenciales incorrectas.";
         }
     } else {
         $error = "Credenciales incorrectas.";
     }
-    sleep(2); // Anti brute-force
+    sleep(2); // Mitigación de fuerza bruta
 }
 ?>
 <!DOCTYPE html>

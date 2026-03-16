@@ -15,8 +15,6 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/../tovi/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';
 
-// CARGA MASIVA DE OPCIONES (Optimización solicitada)
-// Ahora todas las opciones están disponibles en el array global $OPC
 global $OPC;
 $OPC = get_all_opciones();
 
@@ -25,7 +23,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 /**
- * Verifica sesión activa o persistencia por cookie
+ * Verifica sesión activa o persistencia por cookie (Validación por Hash)
  */
 function checking() {
     global $conexion;
@@ -35,10 +33,12 @@ function checking() {
     }
 
     if (isset($_COOKIE['session_token'])) {
-        $token = $_COOKIE['session_token'];
+        $token_recibido = $_COOKIE['session_token'];
+        // Generamos el hash del token recibido para comparar con la DB
+        $token_hash_recibido = hash('sha256', $token_recibido);
         
         $stmt = $conexion->prepare("SELECT id, nombre, nickname, rol, activo FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
-        $stmt->bind_param("s", $token);
+        $stmt->bind_param("s", $token_hash_recibido);
         $stmt->execute();
         $res = $stmt->get_result();
 
@@ -50,6 +50,7 @@ function checking() {
             $_SESSION['user_rol'] = $user['rol'];
             return true;
         } else {
+            // Token inválido o manipulado, eliminamos la cookie
             setcookie('session_token', '', time() - 3600, '/');
         }
     }
