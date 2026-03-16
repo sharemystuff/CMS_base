@@ -23,14 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         $conexion = $resultado_conn;
         
         $master_salt = bin2hex(random_bytes(32));
-
-        // DETECCIÓN DE URL PARA LA OPCIÓN SILENCIOSA
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
         $url_detectada = $protocol . "://" . $_SERVER['HTTP_HOST'];
 
-        // Creación de Opciones Críticas (usando campos opcion_key y opcion_dato)
+        // Opciones Críticas de Seguridad
         create_opcion('salt_key', $master_salt);
-        create_opcion('url_sitio', $url_detectada); // URL Maestra para evitar Host Injection
+        create_opcion('url_sitio', $url_detectada); 
         create_opcion('recuerdame', '30'); 
         create_opcion('registro', '0'); 
         create_opcion('mailer_host', '');
@@ -38,84 +36,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         create_opcion('mailer_password', '');
         create_opcion('mailer_port', '465');
 
-        $contenido_db = "<?php\n";
-        $contenido_db .= "/* api/db.php - Generado por Pacheco Installer */\n\n";
-        $contenido_db .= "\$host = '{$datos_db['host']}';\n";
-        $contenido_db .= "\$user = '{$datos_db['user']}';\n";
-        $contenido_db .= "\$pass = '{$datos_db['pass']}';\n";
-        $contenido_db .= "\$db   = '{$datos_db['name']}';\n\n";
-        $contenido_db .= "mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);\n";
-        $contenido_db .= "try {\n";
-        $contenido_db .= "    \$conexion = new mysqli(\$host, \$user, \$pass, \$db);\n";
-        $contenido_db .= "    \$conexion->set_charset('utf8mb4');\n";
-        $contenido_db .= "} catch (Exception \$e) {\n";
-        $contenido_db .= "    if (strpos(\$_SERVER['PHP_SELF'], 'pacheco.php') === false) {\n";
-        $contenido_db .= "        header('Location: /tovi/pacheco.php');\n";
-        $contenido_db .= "        exit;\n";
-        $contenido_db .= "    }\n";
-        $contenido_db .= "}\n";
+        // Generar api/db.php
+        $contenido_db = "<?php\nmysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);\n";
+        $contenido_db .= "try {\n    \$conexion = new mysqli('{$datos_db['host']}', '{$datos_db['user']}', '{$datos_db['pass']}', '{$datos_db['name']}');\n";
+        $contenido_db .= "    \$conexion->set_charset('utf8mb4');\n} catch (Exception \$e) { header('Location: /tovi/pacheco.php'); exit; }\n";
         
         file_put_contents(__DIR__ . '/../api/db.php', $contenido_db);
         $fase = 2;
-    } else { 
-        $error = "❌ Error: No se pudo conectar a la DB."; 
-    }
+    } else { $error = "❌ Error de conexión."; }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
     include_once __DIR__ . '/../api/db.php';
-    $nombre = limpiar_entrada($_POST['admin_nombre']);
-    $email  = limpiar_entrada($_POST['admin_email']);
-    $pass   = $_POST['admin_pass'];
-    
-    if (create_user_admin($nombre, 'admin', $email, 'admin', $pass)) { 
-        $fase = 3; 
-    } else {
-        $error = "❌ Error al crear el usuario administrador.";
-    }
+    if (create_user_admin(limpiar_entrada($_POST['admin_nombre']), 'admin', limpiar_entrada($_POST['admin_email']), 'admin', $_POST['admin_pass'])) {
+        $fase = 3;
+    } else { $error = "❌ Error al crear admin."; }
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pacheco Installer - CMS BASE</title>
+    <title>CMS BASE - Instalación Limpia</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #1db954; text-align: center; margin-bottom: 25px; }
-        label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: #888; }
-        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #333; background: #2a2a2a; color: #fff; border-radius: 4px; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 12px; background: #1db954; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; color: #000; margin-top: 10px; }
-        .success-box { text-align: center; background: #1b3321; padding: 20px; border-radius: 8px; border: 1px solid #1db954; }
-        .error-msg { color: #ff5555; font-size: 0.8rem; text-align: center; margin-top: 10px; }
+        body { font-family: sans-serif; background: #121212; color: #eee; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; width: 350px; }
+        h1 { color: #1db954; text-align: center; font-size: 1.5rem; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #1db954; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>CMS BASE</h1>
+        <h1>INSTALADOR</h1>
         <?php if ($fase == 1): ?>
             <form method="POST">
-                <label>Host</label><input type="text" name="db_host" value="localhost">
-                <label>Usuario DB</label><input type="text" name="db_user" required>
-                <label>Password DB</label><input type="password" name="db_pass">
-                <label>Nombre DB</label><input type="text" name="db_name" required>
-                <button type="submit" name="instalar_db">CONFIGURAR e INSTALAR</button>
-                <?php if($error): ?><p class="error-msg"><?php echo $error; ?></p><?php endif; ?>
+                <input type="text" name="db_host" value="localhost">
+                <input type="text" name="db_user" placeholder="Usuario DB" required>
+                <input type="password" name="db_pass" placeholder="Password DB">
+                <input type="text" name="db_name" placeholder="Nombre DB" required>
+                <button type="submit" name="instalar_db">INSTALAR</button>
             </form>
         <?php elseif ($fase == 2): ?>
             <form method="POST">
-                <p style="font-size:0.9rem; color:#bbb; text-align:center;">Base de datos conectada.</p>
-                <label>Nombre Completo</label><input type="text" name="admin_nombre" required>
-                <label>Email Admin</label><input type="email" name="admin_email" required>
-                <label>Password Admin</label><input type="password" name="admin_pass" required>
-                <button type="submit" name="crear_admin">FINALIZAR INSTALACIÓN</button>
+                <input type="text" name="admin_nombre" placeholder="Tu nombre" required>
+                <input type="email" name="admin_email" placeholder="Tu email" required>
+                <input type="password" name="admin_pass" placeholder="Password Admin" required>
+                <button type="submit" name="crear_admin">CREAR CUENTA</button>
             </form>
         <?php else: ?>
-            <div class="success-box">
-                <h3 style="color:#8fca9d; margin-top:0;">✅ ¡Todo listo!</h3>
-                <p>Instalación completada.</p>
-                <a href="../public/login.php" style="color:#1db954; font-weight:bold; text-decoration:none;">Ir al Login →</a>
+            <div style="text-align:center;">
+                <p>✅ Instalación Exitosa.</p>
+                <a href="../public/login.php" style="color:#1db954;">Ir al Login</a>
             </div>
         <?php endif; ?>
     </div>

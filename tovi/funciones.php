@@ -13,7 +13,7 @@ function pacheco_instalar($datos_db) {
     $conn->select_db($db_name);
     
     $tablas = [
-        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255), activo INT DEFAULT 0, token_verificacion VARCHAR(255)",
+        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255), activo INT DEFAULT 0, token_verificacion VARCHAR(255), reset_token VARCHAR(255), reset_expira DATETIME",
         "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255) UNIQUE, opcion_dato TEXT",
         "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
         "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
@@ -31,17 +31,10 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * Devuelve las opciones editables en un solo array asociativo.
- * Filtra las opciones críticas del sistema para que no aparezcan en el panel.
- */
 function get_all_opciones() {
     global $conexion;
     $opciones = [];
-    
-    // Filtramos url_sitio y salt_key para que no se rendericen en el admin
-    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones 
-                                   WHERE opcion_key NOT IN ('url_sitio', 'salt_key')");
+    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('url_sitio', 'salt_key')");
     if ($resultado) {
         while ($row = $resultado->fetch_assoc()) {
             $opciones[$row['opcion_key']] = $row['opcion_dato'];
@@ -59,12 +52,7 @@ function get_opcion($key) {
     return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
 }
 
-function update_opcion($key, $valor) {
-    global $conexion;
-    $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
-    $stmt->bind_param("ss", $valor, $key);
-    return $stmt->execute();
-}
+// --- FUNCIONES DE USUARIO ---
 
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
@@ -94,6 +82,40 @@ function user_existe($email) {
     return ($res->num_rows > 0);
 }
 
-function generar_salt($length = 64) {
-    return bin2hex(random_bytes($length / 2));
+// --- LÓGICA DE RECUPERACIÓN ---
+
+/**
+ * Genera un token de recuperación que expira en 1 hora
+ */
+function generar_token_recuperacion($email) {
+    global $conexion;
+    $token = bin2hex(random_bytes(32));
+    $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
+    
+    $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
+    $stmt->bind_param("sss", $token, $expira, $email);
+    return $stmt->execute() ? $token : false;
+}
+
+/**
+ * Valida si un token es real y no ha expirado
+ */
+function validar_token_recuperacion($token) {
+    global $conexion;
+    $ahora = date("Y-m-d H:i:s");
+    $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE reset_token = ? AND reset_expira > ? LIMIT 1");
+    $stmt->bind_param("ss", $token, $ahora);
+    $stmt->execute();
+    return $stmt->get_result()->num_rows > 0;
+}
+
+/**
+ * Cambia la contraseña y limpia el token para que no se use de nuevo
+ */
+function actualizar_password_recuperada($token, $nueva_pass) {
+    global $conexion;
+    $pass_segura = password_hash($nueva_pass, PASSWORD_BCRYPT);
+    $stmt = $conexion->prepare("UPDATE usuarios SET password = ?, reset_token = NULL, reset_expira = NULL WHERE reset_token = ?");
+    $stmt->bind_param("ss", $pass_segura, $token);
+    return $stmt->execute();
 }

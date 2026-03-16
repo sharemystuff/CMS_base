@@ -2,53 +2,46 @@
 /* api/main.php */
 date_default_timezone_set('America/Santiago');
 
-if (!defined('AUTH_SALT')) {
-    define('AUTH_SALT', 'CMS_BASE_PROTECTION_2026_PELIN');
+// 1. Configuración de Sesión Segura
+if (session_status() === PHP_SESSION_NONE) {
+    $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+    
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_samesite', $is_secure ? 'Strict' : 'Lax');
+    if ($is_secure) ini_set('session.cookie_secure', 1);
+
+    session_start();
 }
 
-// 1. Detección de entorno seguro (HTTPS)
-$is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
-
-// 2. Configuración de Cookies de Sesión
-ini_set('session.cookie_httponly', 1); // Bloquea acceso de JS a la sesión
-ini_set('session.use_only_cookies', 1); // Evita sesión por URL
-
-if ($is_secure) {
-    ini_set('session.cookie_secure', 1);   // Solo viaja por HTTPS
-    ini_set('session.cookie_samesite', 'Strict'); // Máxima protección contra CSRF externo
-} else {
-    ini_set('session.cookie_samesite', 'Lax');
-}
-
-session_start();
-
-// --- ESCUDO CONTRA REVELACIÓN DE RUTAS ---
-// En producción, no queremos mostrar errores al usuario
-ini_set('display_errors', 0); 
+// 2. Escudo contra Revelación de Rutas (Error Handling)
+ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
-error_reporting(E_ALL); // Registra todo, pero internamente
-
-// Opcional: Si quieres ver los errores tú, se guardarán en un archivo log
+error_reporting(E_ALL);
 ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../seguridad/php_errors.log'); 
+ini_set('error_log', __DIR__ . '/../seguridad/php_errors.log');
 
-// Cabecera extra de seguridad contra Sniffing
+// 3. Cabeceras de Seguridad Globales
+header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
+// 4. Carga de Dependencias
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/../tovi/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';
 
+// 5. Carga de Opciones Globales
 global $OPC;
 $OPC = get_all_opciones();
 
-// Generación de Token CSRF único para la sesión
+// 6. Token CSRF Automático
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 /**
- * Verifica sesión activa o persistencia por cookie (Validación por Hash)
+ * Verifica sesión activa o persistencia por cookie (Actualizado a BCRYPT)
  */
 function checking() {
     global $conexion;
@@ -67,7 +60,7 @@ function checking() {
         $res = $stmt->get_result();
 
         if ($user = $res->fetch_assoc()) {
-            session_regenerate_id(true); // Previene fijación de sesión
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
             $_SESSION['user_nickname'] = $user['nickname'];
@@ -77,30 +70,19 @@ function checking() {
             setcookie('session_token', '', time() - 3600, '/');
         }
     }
-
     return false;
 }
 
 /**
- * Valida el Token CSRF y el origen de la petición
+ * Valida el Token CSRF y el origen (Referer)
  */
 function validarCSRF($token) {
     if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         return false;
     }
-
     if (isset($_SERVER['HTTP_REFERER'])) {
         $host_peticion = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
-        $mi_host = $_SERVER['SERVER_NAME'];
-        if ($host_peticion !== $mi_host) {
-            return false;
-        }
+        if ($host_peticion !== $_SERVER['SERVER_NAME']) return false;
     }
-
     return true;
 }
-
-// 3. Cabeceras de Seguridad Globales
-header("X-Frame-Options: DENY");
-header("X-Content-Type-Options: nosniff");
-header("Referrer-Policy: strict-origin-when-cross-origin");

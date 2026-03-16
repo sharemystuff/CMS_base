@@ -3,53 +3,39 @@
 
 /**
  * CAPA DE SALIDA: Escapa HTML para prevenir XSS.
- * Úsala en tus archivos de /admin/ o /public/ al hacer echo.
  */
 function e($string) {
     return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 /**
- * CAPA DE ENTRADA: Limpieza de datos.
+ * CAPA DE ENTRADA: Limpieza de datos (Blindada contra Email Injection).
  */
 function limpiar_entrada($data) {
     if (is_array($data)) {
         return array_map('limpiar_entrada', $data);
     }
-    // 1. Quitamos espacios en blanco al inicio y final
     $data = trim($data);
-    // 2. Eliminamos saltos de línea y retornos de carro (EVITA EMAIL INJECTION)
+    // Elimina saltos de línea para evitar Email Header Injection
     $data = str_replace(["\r", "\n"], '', $data);
-    // 3. Convertimos caracteres especiales en entidades HTML (EVITA XSS)
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    
-    return $data;
+    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 
-// Validación de email
+// Validación de email estándar
 function email_valido($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
 /**
- * Hash de contraseña (SHA512 + SALT)
- */
-function encode_pass($password, $manual_salt = null) {
-    $salt = $manual_salt ?? get_opcion('salt_key');
-    if (!$salt) { $salt = 'fallback_salt_cms_base'; } 
-    return hash('sha512', $password . $salt);
-}
-
-/**
- * Verificación de contraseña compatible
+ * Verificación de contraseña compatible con BCRYPT
+ * Nota: Ya no usamos encode_pass manual con SHA512.
  */
 function verificar_pass($pass, $hash_en_db) {
-    $hash_peticion = encode_pass($pass);
-    return hash_equals($hash_peticion, $hash_en_db);
+    return password_verify($pass, $hash_en_db);
 }
 
 /**
- * Intenta realizar un Auto-Login seguro
+ * Intenta realizar un Auto-Login seguro mediante Cookie
  */
 function intentar_auto_login($conexion) {
     if (isset($_COOKIE['session_token']) && !isset($_SESSION['user_id'])) {
