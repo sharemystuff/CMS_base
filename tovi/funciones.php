@@ -8,11 +8,9 @@
 function pacheco_instalar($datos_db) {
     $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
     if ($conn->connect_error) return false;
-
     $db_name = $conn->real_escape_string($datos_db['name']);
     $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
-
     $tablas = [
         "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255)",
         "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255) UNIQUE, opcion_dato TEXT",
@@ -20,10 +18,7 @@ function pacheco_instalar($datos_db) {
         "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
         "post_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, post_id INT, post_key TEXT, post_dato TEXT"
     ];
-
-    foreach ($tablas as $nombre => $campos) {
-        $conn->query("CREATE TABLE IF NOT EXISTS `$nombre` ($campos)");
-    }
+    foreach ($tablas as $nombre => $campos) { $conn->query("CREATE TABLE IF NOT EXISTS `$nombre` ($campos)"); }
     return $conn;
 }
 
@@ -32,6 +27,28 @@ function create_opcion($opcion_key, $valor) {
     if (!$opcion_key) return false;
     $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
     $stmt->bind_param("ss", $opcion_key, $valor);
+    return $stmt->execute();
+}
+
+/**
+ * Obtiene el valor de una opción de la DB.
+ */
+function get_opcion($key) {
+    global $conexion;
+    $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
+    $stmt->bind_param("s", $key);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
+}
+
+/**
+ * Actualiza una opción existente.
+ */
+function update_opcion($key, $valor) {
+    global $conexion;
+    $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
+    $stmt->bind_param("ss", $valor, $key);
     return $stmt->execute();
 }
 
@@ -44,7 +61,6 @@ function create_user($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute() ? $conexion->insert_id : false;
 }
 
-// Función para generar las SALTS aleatorias
 function generar_salt($length = 64) {
     return bin2hex(random_bytes($length / 2));
 }
