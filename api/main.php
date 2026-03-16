@@ -1,6 +1,10 @@
 <?php
 /* api/main.php */
-// 1. Blindaje de Cookies de Sesión (Antes de session_start)
+
+// 1. Zona Horaria
+date_default_timezone_set('America/Santiago');
+
+// 2. Blindaje de Cookies de Sesión
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
@@ -18,12 +22,10 @@ include_once __DIR__ . '/../seguridad/funciones.php';
 function checking() {
     global $conexion;
     
-    // Si ya existe la sesión activa
     if (isset($_SESSION['user_id'])) {
         return true; 
     }
     
-    // Si no hay sesión, buscamos la cookie "Recuérdame"
     if (isset($_COOKIE['session_token'])) {
         $token = limpiar_entrada($_COOKIE['session_token']);
         
@@ -33,7 +35,6 @@ function checking() {
         $res = $stmt->get_result();
 
         if ($u = $res->fetch_assoc()) {
-            // Re-generamos la sesión para evitar Session Fixation
             session_regenerate_id(true);
             $_SESSION['user_id'] = $u['id'];
             $_SESSION['user_nombre'] = $u['nombre'];
@@ -45,7 +46,7 @@ function checking() {
 }
 
 /**
- * Limpia entradas para evitar XSS básico y desastres
+ * Limpia entradas para evitar XSS
  */
 function limpiar_entrada($data) {
     $data = trim($data);

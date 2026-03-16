@@ -21,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Verificación de password
         if (encode_pass($pass) === $u['password']) {
             
             session_regenerate_id(true);
@@ -42,14 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
 
         } else {
-            // ERROR: Clave mal ingresada. Ralentizamos la respuesta 2 segundos.
-            sleep(2);
+            sleep(2); // Ralentiza ataques de fuerza bruta
             header("Location: ../public/login.php?error=1");
             exit;
         }
     } else {
-        // ERROR: Usuario no existe. Ralentizamos igual para no dar pistas.
-        sleep(2);
+        sleep(2); // Ralentiza aunque el usuario no exista
         header("Location: ../public/login.php?error=1");
         exit;
     }
