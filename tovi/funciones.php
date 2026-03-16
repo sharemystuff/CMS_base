@@ -11,8 +11,10 @@ function pacheco_instalar($datos_db) {
     $db_name = $conn->real_escape_string($datos_db['name']);
     $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
+    
+    // TABLAS ACTUALIZADAS CON activo Y token_verificacion
     $tablas = [
-        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255)",
+        "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255), activo INT DEFAULT 0, token_verificacion VARCHAR(255)",
         "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255) UNIQUE, opcion_dato TEXT",
         "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
         "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
@@ -46,18 +48,31 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
-function create_user($nombre, $nickname, $email, $rol, $password) {
+/**
+ * Crea el usuario administrador inicial (Activo por defecto)
+ */
+function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_encoded = encode_pass($password);
     $fecha = date("Y-m-d H:i:s");
-    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
-    return $stmt->execute() ? $conexion->insert_id : false;
+    return $stmt->execute();
 }
 
 /**
- * Verifica si un usuario ya existe por su email.
+ * Crea un usuario pendiente de activación (Para Registro Público)
  */
+function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
+    global $conexion; 
+    $pass_encoded = encode_pass($password);
+    $fecha = date("Y-m-d H:i:s");
+    $token = bin2hex(random_bytes(32));
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+    $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded, $token);
+    return $stmt->execute() ? $token : false;
+}
+
 function user_existe($email) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
@@ -65,6 +80,11 @@ function user_existe($email) {
     $stmt->execute();
     $res = $stmt->get_result();
     return ($res->num_rows > 0);
+}
+
+function random_pass($length = 16) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+    return substr(str_shuffle(str_repeat($chars, 5)), 0, $length);
 }
 
 function generar_salt($length = 64) {

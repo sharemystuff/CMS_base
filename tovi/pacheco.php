@@ -1,6 +1,5 @@
 <?php
 /* tovi/pacheco.php */
-
 define('INSTALACION_PERMITIDA', true);
 include_once __DIR__ . '/../seguridad/funciones.php';
 include_once __DIR__ . '/funciones.php';
@@ -13,11 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
 
     if ($resultado_conn) {
         global $conexion; $conexion = $resultado_conn;
-        
-        // OPCIONES INICIALES - PUNTO 4 + REGISTRO
         create_opcion('salt_key', generar_salt());
         create_opcion('recuerdame', '30'); 
-        create_opcion('registro', '1'); // <-- Agregado aquí
+        create_opcion('registro', '1');
         create_opcion('mailer_host', '');
         create_opcion('mailer_username', '');
         create_opcion('mailer_password', '');
@@ -31,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
     include_once __DIR__ . '/../api/db.php';
-    if (create_user($_POST['admin_nombre'], 'admin', $_POST['admin_email'], 'admin', $_POST['admin_pass'])) { 
+    // El admin se crea ACTIVO (1) directamente
+    if (create_user_admin($_POST['admin_nombre'], 'admin', $_POST['admin_email'], 'admin', $_POST['admin_pass'])) { 
         $fase = 3; 
     }
 }
@@ -59,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
                 <label>Usuario DB</label><input type="text" name="db_user">
                 <label>Password DB</label><input type="password" name="db_pass">
                 <label>Nombre DB</label><input type="text" name="db_name">
-                <button type="submit" name="instalar_db">CONFIGURAR</button>
+                <button type="submit" name="instalar_db">CONFIGURAR e INSTALAR</button>
             </form>
         <?php elseif ($fase == 2): ?>
             <form method="POST">
