@@ -32,12 +32,16 @@ function create_opcion($opcion_key, $valor) {
 }
 
 /**
- * Devuelve todas las opciones en un solo array asociativo
+ * Devuelve las opciones editables en un solo array asociativo.
+ * Filtra las opciones críticas del sistema para que no aparezcan en el panel.
  */
 function get_all_opciones() {
     global $conexion;
     $opciones = [];
-    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones");
+    
+    // Filtramos url_sitio y salt_key para que no se rendericen en el admin
+    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones 
+                                   WHERE opcion_key NOT IN ('url_sitio', 'salt_key')");
     if ($resultado) {
         while ($row = $resultado->fetch_assoc()) {
             $opciones[$row['opcion_key']] = $row['opcion_dato'];
