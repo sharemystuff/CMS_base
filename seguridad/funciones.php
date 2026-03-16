@@ -16,8 +16,9 @@ function email_valido($email) {
 }
 
 // Hash de contraseña (BCRYPT)
-function encode_pass($pass) {
-    return password_hash($pass, PASSWORD_BCRYPT, ['cost' => 12]);
+function encode_pass($password) {
+    $salt = get_opcion('salt_key'); // Esta línea es vital
+    return hash('sha512', $password . $salt);
 }
 
 // Verificación de contraseña
