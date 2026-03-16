@@ -8,18 +8,26 @@ require __DIR__ . '/../tools/vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-$resp = ["status" => "error", "message" => "Error desconocido"];
+$resp = ["status" => "error", "message" => "Solicitud no autorizada (CSRF)"];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // CAPA DE SEGURIDAD CSRF
+    $token_recibido = $_POST['csrf_token'] ?? '';
+    if (!validarCSRF($token_recibido)) {
+        http_response_code(403);
+        echo json_encode($resp);
+        exit;
+    }
+
     $nombre   = limpiar_entrada($_POST['nombre']);
     $nickname = limpiar_entrada($_POST['nickname']);
     $email    = limpiar_entrada($_POST['email']);
-    $pass     = $_POST['pass']; // Recibimos 'pass' desde el formulario
+    $pass     = $_POST['pass'];
 
     if (user_existe($email)) {
         $resp["message"] = "Ese correo ya está registrado.";
     } else {
-        // Creamos el usuario inactivo y obtenemos el token
         $token = create_user_pendiente($nombre, $nickname, $email, 'editor', $pass);
         
         if ($token) {
@@ -30,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $m_pass = get_opcion('mailer_password');
                 $m_port = get_opcion('mailer_port');
 
-                // Configuración PHPMailer
                 $mail->isSMTP();
                 $mail->Host       = $m_host;
                 $mail->SMTPAuth   = true;
@@ -40,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->CharSet    = 'UTF-8';
                 $mail->SMTPSecure = ($m_port == 465) ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
 
-                // Construcción del enlace de activación
                 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
                 $link = "$protocol://{$_SERVER['HTTP_HOST']}/public/confirmar.php?token=$token";
 
@@ -60,11 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>";
 
                 $mail->send();
-                $resp = ["status" => "success", "message" => "¡Registro casi completado! Te hemos enviado un correo de confirmación. Por favor, revisa tu bandeja de entrada para activar tu cuenta."];
+                $resp = ["status" => "success", "message" => "¡Registro casi completado! Te hemos enviado un correo de confirmación."];
 
             } catch (Exception $e) {
-                // En caso de error de mail, el usuario ya existe en DB, así que notificamos el éxito parcial
-                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email. Contacta al soporte para la activación manual."];
+                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email."];
             }
         } else {
             $resp["message"] = "Error al procesar el registro en la base de datos.";
