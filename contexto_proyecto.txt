@@ -389,11 +389,110 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 - Tras cada hito exitoso, se realizará un commit conmemorativo.
 
 ============================================================
-8. ESTADO ACTUAL Y PRÓXIMOS PASOS
+8. ERRORES DETECTADOS QUE PODRÍAN CORREGIRSE
+============================================================
+1. Inputs sin sanitizar en instalador
+Ejemplo:
+
+$_POST['db_host']
+$_POST['db_user']
+$_POST['db_name']
+
+Aunque es instalador interno, lo ideal es validar.
+Solución:
+
+filter_input()
+preg_match()
+validación estricta.
+
+----------------------------------------------------
+2. Posible riesgo SQL injection
+No en todos los archivos revisados se detecta prepared statements.
+Si usas consultas tipo:
+
+SELECT * FROM usuarios WHERE email='$email'
+
+eso es vulnerable.
+Recomendado:
+
+mysqli_prepare()
+
+----------------------------------------------------
+3. Falta de CSRF tokens
+Los formularios actuales parecen no tener tokens CSRF.
+Esto permitiría ataques tipo:
+Cross Site Request Forgery.
+
+Solución:
+generar token sesión.
+
+----------------------------------------------------
+4. Protección de login
+
+Queremos evitar peligros como:
+- anti brute force
+- credential stuffing
+
+Pero en el código revisado no se detectó aún:
+
+limitador de intentos
+bloqueo por IP
+delay progresivo
+
+Solo detectté los sleep(2). Si eso es suficiente, puede quedar así.
+
+    ----------------------------------------------------
+    5. Mejoras de seguridad que podrían intentarse:
+
+    1. Rate limiting login
+    Tabla:
+
+    login_attempts
+
+    Bloquear IP tras 5 intentos.
+
+    ----------------------------------------------------
+    2. Hash de contraseñas
+
+    Asegúrate de usar:
+
+    password_hash()
+    password_verify()
+
+    Nunca md5 o sha1.
+
+    ----------------------------------------------------
+    3. Content Security Policy
+    Agregar header:
+
+    Content-Security-Policy
+
+    Previene XSS.
+
+    ----------------------------------------------------
+    4. Headers de seguridad
+
+    Agregar en .htaccess:
+
+    X-Frame-Options
+    X-Content-Type-Options
+    Referrer-Policy
+
+    ----------------------------------------------------
+    5. Protección contra enumeración de usuarios
+
+    Login debería devolver siempre:
+
+    "Credenciales incorrectas"
+
+    Nunca revelar si existe el email.
+
+============================================================
+9. ESTADO ACTUAL Y PRÓXIMOS PASOS
 ============================================================
 - CMS BASE ya tiene practicamente toda la sección de login y registro completo. Hay que corregir algunas inconsistencias y errores provocados por la implementación de una robusta seguridad contra todo tipo de ataques externos.
 
-Errores:
+Errores que entrega CMS BASE tal como está hasta ahora:
 - index.php (raíz) da este error: "Fatal error: Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:8 Stack trace: #0 {main} thrown in D:\WWW\adminBase\index.php on line 8"
 - Al cerrar sesión en admin se puede volver a entrar a "admin/admin.php". El acceso sigue permitido.
 
