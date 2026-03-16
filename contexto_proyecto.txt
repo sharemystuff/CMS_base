@@ -221,23 +221,104 @@ ADMIN: La pagina de administración debe ser visible solo para usuarios debidame
 ============================================================
 5. ESTRUCTURA ACTUAL DEL PROYECTO
 ============================================================
+
+🌍 Raíz del Proyecto
+. 📂 adminBase: Directorio raíz del CMS.
+
+📄 404.php: Página de error para rutas no encontradas.
+
+📄 _wildcard.adminbase.mahg-key.pem / .pem: Certificados SSL para desarrollo local seguro (HTTPS).
+
+📄 contexto_proyecto.txt: Documentación interna o anotaciones del desarrollo.
+
+📄 humans.txt: Archivo de ética y créditos (quién hizo la web).
+
+📄 robots.txt: Instrucciones para buscadores (SEO).
+
+📄 index.php: El "enrutador" principal que decide qué cargar al entrar a la URL base.
+
+🛠️ Carpeta admin/ (Panel de Administración)
+📄 admin.php: El Dashboard principal donde aterrizas al loguearte.
+
+📂 css/ / 📂 js/: Estilos y scripts exclusivos para que el panel se vea y funcione de lujo.
+
+📄 logout.php: Proceso de cierre de sesión (destrucción de cookies y variables).
+
+📄 opciones.php: Interfaz para cambiar la configuración (Nombre del sitio, SMTP, Registro ON/OFF).
+
+📄 sec-aside.php: Menú lateral (Sidebar) reutilizable en todas las vistas del admin.
+
+📄 sec-header.php / sec-footer.php: Cabecera y pie de página del panel administrativo.
+
+⚙️ Carpeta api/ (El Corazón Lógico)
+📄 db.php: Configuración de conexión a la Base de Datos.
+
+📄 front-ajax.php: Manejador de peticiones asíncronas desde el frontend.
+
+📄 login_proceso.php: Procesa el formulario de acceso y valida contra la DB.
+
+📄 main.php: El orquestador global (Timezone, Sesiones, Inclusiones Core).
+
+📄 registro_proceso.php: Gestiona el alta de nuevos usuarios y envío de emails.
+
+📄 urls-seo.php: Lógica para convertir URLs feas en URLs amigables (ej: post.php?id=1 a /mi-post).
+
+🎨 Carpeta assets/ (Recursos Estáticos)
+📂 css/ / 📂 fonts/: Iconos (themify), tipografías (OpenSans) y estilos globales.
+
+📂 js/: Contiene el enrutador.js, cerebro para la navegación sin recarga o manejo de rutas.
+
+📂 plugins/: Librerías externas como jquery.js.
+
+📝 Carpeta contenido/ (Manejador de Tipos de Post)
+📂 articulos/: Configuración y lógica específica para las entradas de blog o noticias.
+
+📄 tipos.php: Define qué tipos de contenido existen (Productos, Servicios, Portfolio, etc.).
+
+👥 Carpeta public/ (Lo que ve el Usuario Final)
+📄 index.php: Home del sitio web público.
+
+📄 login.php / registro.php / recuperar.php: Vistas de acceso y gestión de cuenta para el usuario.
+
+📄 confirmar.php / reset.php: Procesos de validación de email y reseteo de clave.
+
+📄 pagina.php / post.php: Plantillas para mostrar contenido estático o dinámico.
+
+📄 sec-header.php / sec-footer.php: Cabecera y pie de página del sitio público (independientes del admin).
+
+🛡️ Carpetas de Sistema y Soporte
+📂 seguridad/: Contiene funciones.php para limpiar datos (limpiar_entrada) y hashear claves.
+
+📂 tools/: Gestión de dependencias externas vía Composer.
+
+📂 tovi/: La carpeta mágica. pacheco.php instala el sistema y funciones.php maneja el CRUD de opciones.
+
+📂 uploads/: Carpeta de destino para todas las imágenes y archivos que subas al CMS.
+
+Vista de árbol:
 . 📂 adminBase
-├── 📄 _wildcard.adminbase.mahg-key.pem   Archivo para tener https en local
-├── 📄 _wildcard.adminbase.mahg.pem       Archivo para tener https en local
+├── 📄 404.php
+├── 📄 _wildcard.adminbase.mahg-key.pem
+├── 📄 _wildcard.adminbase.mahg.pem
 └── 📂 admin/
-│  ├── 📄 admin.php                       La administración de todo el backend. Ya tiene un diseño y funcionamiento predefinido. En su interior busca sec-aside sec-footer etc
+│  ├── 📄 admin.php
 │  └── 📂 css/
-│    ├── 📄 admin.css                     Los estilos del admin
+│    ├── 📄 admin.css
 │  └── 📂 js/
-│    ├── 📄 admin.js                      El javascript del admin
-│  ├── 📄 sec-aside.php                   seccion aside del admin
-│  ├── 📄 sec-footer.php                  seccion footer del admin
-│  ├── 📄 sec-header.php                  seccion header del admin
+│    ├── 📄 admin.js
+│  ├── 📄 logout.php
+│  ├── 📄 opciones.php
+│  ├── 📄 sec-aside.php
+│  ├── 📄 sec-footer.php
+│  ├── 📄 sec-header.php
 └── 📂 api/
-│  ├── 📄 db.php                          instrucciones para conectarse a la base de datos
-│  ├── 📄 front-ajax.php                  funciones que sirven para comunicarse con html a traves de ajax
-│  ├── 📄 urls-seo.php                    todas las funciones de código para tener urls amigables
-└── 📂 assets/                            Guarda todos los archivos que son usados en comun por frontend y backend
+│  ├── 📄 db.php
+│  ├── 📄 front-ajax.php
+│  ├── 📄 login_proceso.php
+│  ├── 📄 main.php
+│  ├── 📄 registro_proceso.php
+│  ├── 📄 urls-seo.php
+└── 📂 assets/
 │  └── 📂 css/
 │    ├── 📄 themify-icons.css
 │  └── 📂 fonts/
@@ -246,35 +327,38 @@ ADMIN: La pagina de administración debe ser visible solo para usuarios debidame
 │    ├── 📄 OpenSans-Regular.woff
 │    ├── 📄 themify.woff
 │  └── 📂 js/
-│    ├── 📄 enrutador.js                  No recuerdo para qué cree ese archivo, jajaja
-│  └── 📂 plugins/                        Para guardar todos los plugin JS que se usen en CMS BASE
-│    ├── 📄 jquery.js                     Librería inmortal
-└── 📂 modulos/                           Aquí se agregarán los diferentes módulos (como plugins) para el CMS
-│  └── 📂 articulos/                      El módulo que está por defecto en el CMS
-│    ├── 📄 config.php                    Las opciones del modulos: nombre categorias posicion en el menu admin etc
-│    ├── 📄 main.php                      La página que aparecerá dentro de admin sobre el modulo
-│  ├── 📄 tipos.php                       Script que manejará los modulos. Debe reconocerlos, ver su configuración y hacer que aparezcan en el admin
-├── 📄 contexto_proyecto.txt              Tu memoria, jajaja
-├── 📄 index.php                          script principal del sitio. Organiza el flujo completo para el sitio se vea
-└── 📂 public/                            carpeta donde se guardan todos los archivos del frontend
-│  ├── 📄 index.php                       página de inicio. En su interior busca sec-header sec-footer etc
-│  ├── 📄 login.php                       formulario de acceso al backend
-│  ├── 📄 pagina.php                      framework para mostrar cualquier página "estática" del sitio o de un módulo.
-│  ├── 📄 post.php                        framework para mostrar cualquier post del sitio o de un módulo
-│  ├── 📄 recuperar.php                   formulario para recuperar contraseña
-│  ├── 📄 registro.php                    formulario para registrarse como usuario
-│  ├── 📄 reset.php                       formulario para resetear la contraseña
-│  ├── 📄 sec-footer.php                  seccion footer para index.php
-│  ├── 📄 sec-header.php                  seccion header para index.php
-└── 📂 seguridad/                         para colocar todos los archivos que contengan funciones y código relacionados con la seguridad del sitio
-│  ├── 📄 funciones.php                   archivo inicial con funciones relacionadas con la seguridad
-└── 📂 tools/                             plugins php, herramientas externas para el funcionamiento del CMS
-│  ├── 📄 composer.json                   Ya está instalado SwiftMailer
-│  ├── 📄 composer.lock
-└── 📂 tovi/                              todas las funciones CORE irán acá separadas en diferentes archivos según su utilidad
+│    ├── 📄 enrutador.js
+│  └── 📂 plugins/
+│    ├── 📄 jquery.js
+└── 📂 contenido/
+│  └── 📂 articulos/
+│    ├── 📄 config.php
+│    ├── 📄 main.php
+│  ├── 📄 tipos.php
+├── 📄 contexto_proyecto.txt
+├── 📄 humans.txt
+├── 📄 index.php
+└── 📂 public/
+│  ├── 📄 confirmar.php
+│  ├── 📄 index.php
+│  ├── 📄 login.php
+│  ├── 📄 pagina.php
+│  ├── 📄 post.php
+│  ├── 📄 recuperar.php
+│  ├── 📄 registro.php
+│  ├── 📄 reset.php
+│  ├── 📄 sec-footer.php
+│  ├── 📄 sec-header.php
+├── 📄 robot.txt
+└── 📂 seguridad/
 │  ├── 📄 funciones.php
-│  ├── 📄 pacheco.php                     archivo que contiene todas las instrucciones para instalar desde cero CMS BASE
-└── 📂 uploads/                           aquí estarán todos los archivos subidos por los usuarios (fotos de perfil, fotos opara posts, etc)
+└── 📂 tools/
+│  ├── 📄 composer.json
+│  ├── 📄 composer.lock
+└── 📂 tovi/
+│  ├── 📄 funciones.php
+│  ├── 📄 pacheco.php
+└── 📂 uploads/
 
 ============================================================
 6. USO DE GITHUB
