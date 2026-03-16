@@ -28,8 +28,8 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Panel de Control - CMS BASE</title>
-    <link rel="stylesheet" href="../assets/css/themify-icons.css">
-    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <link rel="stylesheet" href="https://www.adminbase.mahg/admin/css/admin.css">
+    <link rel="stylesheet" href="https://www.adminbase.mahg/assets/css/themify-icons.css">
 </head>
 <body>
     <?php include_once 'sec-header.php'; ?>
