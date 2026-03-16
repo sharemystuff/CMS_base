@@ -30,9 +30,6 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * Obtiene el valor de una opción de la DB.
- */
 function get_opcion($key) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
@@ -42,9 +39,6 @@ function get_opcion($key) {
     return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
 }
 
-/**
- * Actualiza una opción existente.
- */
 function update_opcion($key, $valor) {
     global $conexion;
     $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
@@ -59,6 +53,18 @@ function create_user($nombre, $nickname, $email, $rol, $password) {
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
     return $stmt->execute() ? $conexion->insert_id : false;
+}
+
+/**
+ * Verifica si un usuario ya existe por su email.
+ */
+function user_existe($email) {
+    global $conexion;
+    $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return ($res->num_rows > 0);
 }
 
 function generar_salt($length = 64) {
