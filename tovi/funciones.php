@@ -47,13 +47,29 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
+/**
+ * Crea el usuario administrador inicial
+ */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $pass_segura = password_hash($password, PASSWORD_BCRYPT); //
+    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura);
     return $stmt->execute();
+}
+
+/**
+ * Crea un usuario pendiente de activación
+ */
+function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
+    global $conexion; 
+    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
+    $fecha = date("Y-m-d H:i:s");
+    $token = bin2hex(random_bytes(32));
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+    $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura, $token);
+    return $stmt->execute() ? $token : false;
 }
 
 function user_existe($email) {

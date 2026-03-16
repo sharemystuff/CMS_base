@@ -1,6 +1,6 @@
 <?php
 /* api/db.php */
-$host='localhost'; $user='root'; $pass='marcelo'; $db='12345678';
+$host='localhost'; $user='root'; $pass='marcelo'; $db='cms_base';
 
 mysqli_report(MYSQLI_REPORT_OFF);
 @$conexion = new mysqli($host, $user, $pass, $db);

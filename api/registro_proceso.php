@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre   = limpiar_entrada($_POST['nombre']);
     $nickname = limpiar_entrada($_POST['nickname']);
     $email    = limpiar_entrada($_POST['email']);
-    $pass     = $_POST['pass'];
+    $pass     = $_POST['pass']; // Recibimos 'pass' desde el formulario
 
     if (user_existe($email)) {
         $resp["message"] = "Ese correo ya está registrado.";
@@ -63,7 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $resp = ["status" => "success", "message" => "¡Registro casi completado! Te hemos enviado un correo de confirmación. Por favor, revisa tu bandeja de entrada para activar tu cuenta."];
 
             } catch (Exception $e) {
-                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email. Contacta al soporte."];
+                // En caso de error de mail, el usuario ya existe en DB, así que notificamos el éxito parcial
+                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email. Contacta al soporte para la activación manual."];
             }
         } else {
             $resp["message"] = "Error al procesar el registro en la base de datos.";
