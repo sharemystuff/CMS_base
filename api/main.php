@@ -48,9 +48,9 @@ function checking() {
 /**
  * Limpia entradas para evitar XSS
  */
-function limpiar_entrada($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    return $data;
-}
+// function limpiar_entrada($data) {
+//     $data = trim($data);
+//     $data = stripslashes($data);
+//     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+//     return $data;
+// }

@@ -7,11 +7,11 @@ Header set X-Content-Type-Options "nosniff"
 Header set X-XSS-Protection "1; mode=block"
 
 # Bloquear acceso a archivos sensibles (pero permitir index y publicos)
-<FilesMatch "\.(php|ini|log|txt)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-<FilesMatch "(index.php|pacheco.php|login.php|registro.php|confirmar.php|recuperar.php|admin.php|404.php|humans.txt|robots.txt)$">
-    Allow from all
-</FilesMatch>
+# <FilesMatch "\.(php|ini|log|txt)$">
+#     Order allow,deny
+#     Deny from all
+# </FilesMatch>
+# 
+# <FilesMatch "(index.php|pacheco.php|login.php|registro.php|confirmar.php|recuperar.php|admin.php|404.php|humans.txt|robots.txt)$">
+#     Allow from all
+# </FilesMatch>
