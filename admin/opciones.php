@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
 <head>
     <meta charset="UTF-8">
     <title>Configuración - CMS BASE</title>
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/admin-style.css">
+    <link rel="stylesheet" href="../assets/css/themify-icons.css">
+    <link rel="stylesheet" href="admin/css/admin.css">
     <style>
         /* Ajustes rápidos de legibilidad Mangiacaprini */
         .config-form h3 { color: #1db954; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
