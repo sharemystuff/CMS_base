@@ -22,6 +22,19 @@ if ($is_secure) {
 
 session_start();
 
+// --- ESCUDO CONTRA REVELACIÓN DE RUTAS ---
+// En producción, no queremos mostrar errores al usuario
+ini_set('display_errors', 0); 
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL); // Registra todo, pero internamente
+
+// Opcional: Si quieres ver los errores tú, se guardarán en un archivo log
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../seguridad/php_errors.log'); 
+
+// Cabecera extra de seguridad contra Sniffing
+header("X-Content-Type-Options: nosniff");
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/../tovi/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';

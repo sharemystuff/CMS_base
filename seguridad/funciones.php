@@ -13,9 +13,17 @@ function e($string) {
  * CAPA DE ENTRADA: Limpieza de datos.
  */
 function limpiar_entrada($data) {
-    if (is_null($data)) return '';
-    // Mantenemos htmlspecialchars aquí por compatibilidad con tus vistas actuales
-    return htmlspecialchars(stripslashes(trim($data)), ENT_QUOTES, 'UTF-8');
+    if (is_array($data)) {
+        return array_map('limpiar_entrada', $data);
+    }
+    // 1. Quitamos espacios en blanco al inicio y final
+    $data = trim($data);
+    // 2. Eliminamos saltos de línea y retornos de carro (EVITA EMAIL INJECTION)
+    $data = str_replace(["\r", "\n"], '', $data);
+    // 3. Convertimos caracteres especiales en entidades HTML (EVITA XSS)
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    
+    return $data;
 }
 
 // Validación de email
