@@ -19,10 +19,10 @@ function pacheco_instalar($datos_db) {
     $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
 
-    // Actualizado: Agregada columna session_token a usuarios
     $tablas = [
         "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255)",
-        "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255), opcion_dato TEXT",
+        // Definimos opcion_key como UNIQUE para que create_opcion falle si ya existe
+        "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255) UNIQUE, opcion_dato TEXT",
         "posts" => "id INT AUTO_INCREMENT PRIMARY KEY, tipo TEXT, titulo TEXT, url TEXT, contenido TEXT, opengraph TEXT, imagen TEXT, fecha DATETIME, autor INT, categorias TEXT, etiquetas TEXT",
         "user_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, user_key TEXT, user_dato TEXT",
         "post_meta" => "id INT AUTO_INCREMENT PRIMARY KEY, post_id INT, post_key TEXT, post_dato TEXT"
@@ -33,6 +33,26 @@ function pacheco_instalar($datos_db) {
     }
 
     return $conn;
+}
+
+/**
+ * Crea una opción.
+ * Si la llave ya existe, devolverá FALSE.
+ */
+function create_opcion($opcion_key, $valor) {
+    global $conexion;
+    if (!$opcion_key) return false;
+    $valor_final = $valor ?? "";
+    
+    // Intento de inserción pura. Fallará si opcion_key existe debido al UNIQUE
+    $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
+    $stmt->bind_param("ss", $opcion_key, $valor_final);
+    
+    // Si la ejecución falla (ej: por duplicado), devuelve false
+    if ($stmt->execute()) {
+        return true;
+    }
+    return false;
 }
 
 function create_user($nombre, $nickname, $email, $rol, $password) {
@@ -46,22 +66,11 @@ function create_user($nombre, $nickname, $email, $rol, $password) {
     return false;
 }
 
-function create_opcion($opcion_key, $valor) {
-    global $conexion;
-    if (!$opcion_key) return false;
-    $valor_final = $valor ?? "";
-    $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
-    $stmt->bind_param("ss", $opcion_key, $valor_final);
-    if ($stmt->execute()) { return $conexion->insert_id; }
-    return false;
-}
-
 function user_existe($user) {
     global $conexion;
     $campo = email_valido($user) ? "email" : "id";
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE $campo = ?");
     $stmt->bind_param("s", $user);
     $stmt->execute();
-    $resultado = $stmt->get_result();
-    return ($resultado->num_rows > 0);
+    return ($stmt->get_result()->num_rows > 0);
 }

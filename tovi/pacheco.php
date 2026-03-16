@@ -22,18 +22,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         global $conexion;
         $conexion = $resultado_conn;
         
-        // Insertamos la opción de duración de sesión por defecto (30 días)
+        // INSERTAMOS TODAS LAS OPCIONES DEL PUNTO 4
         create_opcion('recuerdame', '30'); 
+        create_opcion('mailer_host', '');
+        create_opcion('mailer_username', '');
+        create_opcion('mailer_password', '');
+        create_opcion('mailer_port', '');
 
-        $contenido_db = "<?php\n/* api/db.php */\n\$host = '{$datos_db['host']}';\n\$user = '{$datos_db['user']}';\n\$pass = '{$datos_db['pass']}';\n\$db   = '{$datos_db['name']}';\n\n\$conexion = @new mysqli(\$host, \$user, \$pass, \$db);\nif (\$conexion->connect_error) { die('Error: ' . \$conexion->connect_error); }\n\$conexion->set_charset('utf8mb4');\n";
+        // Generación de api/db.php con redirección si falla la conexión
+        $contenido_db = "<?php\n"
+                      . "/* api/db.php */\n"
+                      . "\$host = '{$datos_db['host']}';\n"
+                      . "\$user = '{$datos_db['user']}';\n"
+                      . "\$pass = '{$datos_db['pass']}';\n"
+                      . "\$db   = '{$datos_db['name']}';\n\n"
+                      . "@\$conexion = new mysqli(\$host, \$user, \$pass, \$db);\n\n"
+                      . "if (\$conexion->connect_error) {\n"
+                      . "    header('Location: /tovi/pacheco.php');\n"
+                      . "    exit;\n"
+                      . "}\n"
+                      . "\$conexion->set_charset('utf8mb4');\n";
         
         if (file_put_contents(__DIR__ . '/../api/db.php', $contenido_db)) {
             $fase = 2;
         } else {
-            $error = "❌ Error al escribir api/db.php";
+            $error = "❌ Error: Permisos insuficientes para crear api/db.php";
         }
     } else {
-        $error = "❌ Error de conexión MySQL.";
+        $error = "❌ Error: Los datos de MySQL son incorrectos.";
     }
 }
 
@@ -44,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
     $pass   = $_POST['admin_pass'];
     if (email_valido($email)) {
         $user_id = create_user($nombre, 'admin', $email, 'admin', $pass);
-        if ($user_id) { $fase = 3; } else { $error = "❌ Error al crear admin."; }
-    } else { $error = "❌ Email inválido."; }
+        if ($user_id) { $fase = 3; } else { $error = "❌ No se pudo crear el administrador."; }
+    } else { $error = "❌ Email no válido."; }
 }
 ?>
 <!DOCTYPE html>
@@ -67,22 +83,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
     <div class="card">
         <h1>CMS BASE</h1>
         <?php if ($fase == 1): ?>
+            <p style="text-align:center; font-size: 0.8rem;">Instalación de Base de Datos</p>
+            <?php if($error): ?><p style="color:#ff5555; font-size:0.8rem; text-align:center;"><?php echo $error; ?></p><?php endif; ?>
             <form method="POST">
                 <label>Host</label><input type="text" name="db_host" value="localhost" required>
                 <label>Usuario</label><input type="text" name="db_user" required>
                 <label>Password</label><input type="password" name="db_pass">
                 <label>Nombre DB</label><input type="text" name="db_name" required>
-                <button type="submit" name="instalar_db">CONFIGURAR DB</button>
+                <button type="submit" name="instalar_db">CONFIGURAR Y CREAR</button>
             </form>
         <?php elseif ($fase == 2): ?>
+            <p style="text-align:center; font-size: 0.8rem;">Crear Usuario Maestro</p>
             <form method="POST">
-                <label>Nombre</label><input type="text" name="admin_nombre" required>
-                <label>Email</label><input type="email" name="admin_email" required>
-                <label>Password</label><input type="password" name="admin_pass" required>
-                <button type="submit" name="crear_admin">FINALIZAR INSTALACIÓN</button>
+                <label>Nombre Completo</label><input type="text" name="admin_nombre" required>
+                <label>Email de Acceso</label><input type="email" name="admin_email" required>
+                <label>Contraseña</label><input type="password" name="admin_pass" required>
+                <button type="submit" name="crear_admin">FINALIZAR CONFIGURACIÓN</button>
             </form>
         <?php elseif ($fase == 3): ?>
-            <div class="success"><h3>✅ ¡Instalado!</h3><a href="../public/login.php" style="color:#1db954">Ir al Login</a></div>
+            <div class="success"><h3>✅ Instalación Exitosa</h3><a href="../public/login.php" style="color:#1db954; font-weight:bold; text-decoration:none;">IR AL LOGIN →</a></div>
         <?php endif; ?>
     </div>
 </body>
