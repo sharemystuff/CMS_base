@@ -2,21 +2,24 @@
 /* admin/admin.php */
 
 /**
- * CMS BASE - Panel de Administración Principal
- * Blindado por el sistema de seguridad Mangiacaprini.
+ * CMS BASE - Panel Admin
+ * Blindado contra accesos sin instalación.
  */
-session_start();
 
-// Verificamos si el usuario tiene una sesión activa
-if (!isset($_SESSION['user_id'])) {
-    // Si no hay sesión, se le expulsa al login inmediatamente
-    header('Location: ../public/login.php');
+// 1. SENSOR DE INSTALACIÓN FÍSICO
+if (!file_exists(__DIR__ . '/../api/db.php')) {
+    header("Location: ../tovi/pacheco.php");
     exit;
 }
 
-// Verificamos privilegios (admin o owner)
-if ($_SESSION['user_rol'] !== 'admin' && $_SESSION['user_rol'] !== 'owner') {
-    die('Acceso restringido: No tienes permisos suficientes.');
+include_once __DIR__ . '/../api/db.php';
+
+session_start();
+
+// Verificamos sesión
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../public/login.php");
+    exit;
 }
 ?>
 
@@ -24,38 +27,31 @@ if ($_SESSION['user_rol'] !== 'admin' && $_SESSION['user_rol'] !== 'owner') {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control - CMS BASE</title>
     <link rel="stylesheet" href="../assets/css/themify-icons.css">
     <link rel="stylesheet" href="../assets/css/admin-style.css">
 </head>
 <body>
-
     <?php include_once 'sec-header.php'; ?>
     
     <div class="main-wrapper" style="display: flex;">
-        
         <?php include_once 'sec-aside.php'; ?>
         
         <main class="content-area" style="padding: 20px; flex-grow: 1;">
-            <h1>Bienvenido al Panel, <?php echo htmlspecialchars($_SESSION['user_nombre']); ?></h1>
-            <p>Estado del sistema: <strong>Operativo</strong></p>
-            <p>Has ingresado como: <em><?php echo $_SESSION['user_rol']; ?></em></p>
+            <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['user_nombre']); ?></h1>
+            <p>Estado del sistema: <span style="color: #1db954;">● Conectado</span></p>
             
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            
-            <div class="dashboard-info">
-                <p>Este es el corazón de tu CMS BASE. Desde aquí gestionaremos todo.</p>
+            <div style="margin-top: 40px; background: #181818; padding: 20px; border-radius: 8px; border: 1px solid #333;">
+                <h3>Configuración Inicial Detectada</h3>
+                <p>La base de datos está operativa y las opciones base han sido creadas.</p>
             </div>
 
             <a href="logout.php" style="display: inline-block; margin-top: 30px; color: #ff5555; text-decoration: none; border: 1px solid #ff5555; padding: 10px 20px; border-radius: 5px;">
-                <i class="ti-power-off"></i> Cerrar Sesión Segura
+                Cerrar Sesión
             </a>
         </main>
-
     </div>
 
     <?php include_once 'sec-footer.php'; ?>
-
 </body>
 </html>
