@@ -31,6 +31,21 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
+/**
+ * Devuelve todas las opciones en un solo array asociativo
+ */
+function get_all_opciones() {
+    global $conexion;
+    $opciones = [];
+    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones");
+    if ($resultado) {
+        while ($row = $resultado->fetch_assoc()) {
+            $opciones[$row['opcion_key']] = $row['opcion_dato'];
+        }
+    }
+    return $opciones;
+}
+
 function get_opcion($key) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
@@ -47,9 +62,6 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * Crea el usuario administrador inicial
- */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -59,9 +71,6 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
-/**
- * Crea un usuario pendiente de activación
- */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);

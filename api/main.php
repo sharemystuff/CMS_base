@@ -2,39 +2,38 @@
 /* api/main.php */
 date_default_timezone_set('America/Santiago');
 
-// Definición de Salt de seguridad
 if (!defined('AUTH_SALT')) {
     define('AUTH_SALT', 'CMS_BASE_PROTECTION_2026_PELIN');
 }
 
-// Configuración de Sesión Segura
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Lax');
 session_start();
 
-// Inclusiones Core
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/../tovi/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';
 
-// Generar Token CSRF si no existe
+// CARGA MASIVA DE OPCIONES (Optimización solicitada)
+// Ahora todas las opciones están disponibles en el array global $OPC
+global $OPC;
+$OPC = get_all_opciones();
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 /**
- * Verifica si el usuario está logueado o tiene cookie de persistencia
+ * Verifica sesión activa o persistencia por cookie
  */
 function checking() {
     global $conexion;
 
-    // 1. Si ya hay sesión activa
     if (isset($_SESSION['user_id'])) {
         return true;
     }
 
-    // 2. Si no hay sesión, buscamos la cookie de "Recuérdame"
     if (isset($_COOKIE['session_token'])) {
         $token = $_COOKIE['session_token'];
         
@@ -44,7 +43,6 @@ function checking() {
         $res = $stmt->get_result();
 
         if ($user = $res->fetch_assoc()) {
-            // Reconstruimos la sesión
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
@@ -52,7 +50,6 @@ function checking() {
             $_SESSION['user_rol'] = $user['rol'];
             return true;
         } else {
-            // Token inválido o expirado en DB, borramos cookie
             setcookie('session_token', '', time() - 3600, '/');
         }
     }
@@ -64,7 +61,6 @@ function validarCSRF($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// Headers de Seguridad Globales
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
