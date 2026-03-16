@@ -12,7 +12,6 @@ function pacheco_instalar($datos_db) {
     $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
     
-    // TABLAS ACTUALIZADAS CON activo Y token_verificacion
     $tablas = [
         "usuarios" => "id INT AUTO_INCREMENT PRIMARY KEY, nombre TEXT, nickname TEXT, email TEXT, password TEXT, rol ENUM('admin', 'owner', 'editor'), fecha DATETIME, special_key TEXT, session_token VARCHAR(255), activo INT DEFAULT 0, token_verificacion VARCHAR(255)",
         "opciones" => "id INT AUTO_INCREMENT PRIMARY KEY, opcion_id VARCHAR(255), opcion_key VARCHAR(255) UNIQUE, opcion_dato TEXT",
@@ -49,12 +48,12 @@ function update_opcion($key, $valor) {
 }
 
 /**
- * Crea el usuario administrador inicial (Activo por defecto)
+ * Crea el usuario administrador inicial (Forzamos lectura de salt)
  */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $salt = get_opcion('salt_key'); // Aseguramos que la lee
-    $pass_encoded = encode_pass($password, $salt); // Se la pasamos manual
+    $salt = get_opcion('salt_key'); // Crucial: Obtener la salt recién creada
+    $pass_encoded = encode_pass($password, $salt);
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
@@ -62,7 +61,7 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
 }
 
 /**
- * Crea un usuario pendiente de activación (Para Registro Público)
+ * Crea un usuario pendiente de activación
  */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
