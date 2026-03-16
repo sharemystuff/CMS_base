@@ -311,4 +311,7 @@ El proyecto solo tiene el funcionando el template de admin. No tiene funcionalid
 
 Hay que empezar con la instalación y el login
 
+Cosas locas pendientes:
+- un boton en las opciones de admin para renovar las salts
+
 ############################################################

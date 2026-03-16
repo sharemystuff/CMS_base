@@ -1,6 +1,9 @@
 <?php
+/* index.php */
 
-define('BASE_PATH', __DIR__ . '/');
-define('BASE_URL', 'https://' . $_SERVER['HTTP_HOST']. '/' );
+// Cargamos el cerebro. Si no hay instalación, esto nos mandará a Pacheco.
+include_once 'api/main.php';
 
-include "public/index.php";
+echo "<h1>CMS BASE</h1>";
+echo "<p>El sistema está operativo. Salt actual: " . substr(AUTH_SALT, 0, 10) . "...</p>";
+?>
