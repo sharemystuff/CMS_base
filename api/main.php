@@ -1,44 +1,55 @@
 <?php
 /* api/main.php */
-
-/**
- * CMS BASE - El "Cerebro" Central
- */
-
-$db_file = __DIR__ . '/db.php';
-
-// 1. SENSOR DE INSTALACIÓN
-if (!file_exists($db_file)) {
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
-    header("Location: $protocol://$host/tovi/pacheco.php");
-    exit;
+// 1. Blindaje de Cookies de Sesión (Antes de session_start)
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', 1);
 }
 
+session_start();
 include_once __DIR__ . '/db.php';
-include_once __DIR__ . '/../seguridad/funciones.php';
 include_once __DIR__ . '/../tovi/funciones.php';
-
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
-// 2. CARGA DE SALTS
-$res_salt = $conexion->query("SELECT opcion_dato FROM opciones WHERE opcion_key = 'salt_key'");
-if ($res_salt && $res_salt->num_rows > 0) {
-    define('AUTH_SALT', $res_salt->fetch_assoc()['opcion_dato']);
-} else {
-    define('AUTH_SALT', 'base_fallback_key_88');
-}
-
-// 3. INTENTO DE AUTO-LOGIN (Persistencia)
-// Si no hay sesión, intentamos usar la cookie
-intentar_auto_login($conexion);
+include_once __DIR__ . '/../seguridad/funciones.php';
 
 /**
- * Función checking(): Protege páginas privadas
+ * Verifica si el usuario está logueado o tiene cookie de sesión
  */
 function checking() {
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: /public/login.php");
-        exit;
+    global $conexion;
+    
+    // Si ya existe la sesión activa
+    if (isset($_SESSION['user_id'])) {
+        return true; 
     }
+    
+    // Si no hay sesión, buscamos la cookie "Recuérdame"
+    if (isset($_COOKIE['session_token'])) {
+        $token = limpiar_entrada($_COOKIE['session_token']);
+        
+        $stmt = $conexion->prepare("SELECT id, nombre, rol, activo FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($u = $res->fetch_assoc()) {
+            // Re-generamos la sesión para evitar Session Fixation
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $u['id'];
+            $_SESSION['user_nombre'] = $u['nombre'];
+            $_SESSION['user_rol'] = $u['rol'];
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Limpia entradas para evitar XSS básico y desastres
+ */
+function limpiar_entrada($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    return $data;
 }

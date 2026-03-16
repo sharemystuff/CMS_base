@@ -1,0 +1,11 @@
+/* TEAM */
+    Developer: Gemini & Mangiacaprini
+    Contact: mailer@microstudio.cl
+    Twitter: @microstudio
+    From: Chile
+
+/* SITE */
+    Last update: 2024/05
+    Standards: HTML5, CSS3, PHP 8.x
+    Components: PHPMailer, Composer
+    Software: CMS BASE (1MB Edition)

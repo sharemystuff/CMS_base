@@ -7,10 +7,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pass  = $_POST['password'];
     $recuerdame = isset($_POST['recuerdame']);
 
-    // 1. Verificar que la conexión existe
-    if (!$conexion) { die("Error de conexión a la base de datos."); }
+    if (!$conexion) { die("Error de conexión."); }
 
-    // 2. Buscamos al usuario
     $stmt = $conexion->prepare("SELECT id, password, nombre, activo, rol FROM usuarios WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -18,26 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($u = $resultado->fetch_assoc()) {
         
-        // 3. Verificar si la cuenta está activa
         if ($u['activo'] != 1) {
             header("Location: ../public/login.php?error=not_active");
             exit;
         }
 
-        // --- TEST DE SEGURIDAD ---
-        $salt = get_opcion('salt_key');
-        if(!$salt) { die("Error fatal: No se pudo recuperar la llave de seguridad (salt_key)."); }
-        // -------------------------
-
-        // 4. Verificar contraseña
+        // Verificación de password
         if (encode_pass($pass) === $u['password']) {
             
-            // ÉXITO: Iniciamos sesión
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $u['id'];
             $_SESSION['user_nombre'] = $u['nombre'];
             $_SESSION['user_rol'] = $u['rol'];
 
-            // Cookie "Recuérdame"
             if ($recuerdame) {
                 $token = bin2hex(random_bytes(32));
                 $dias = get_opcion('recuerdame') ? (int)get_opcion('recuerdame') : 30;
@@ -51,12 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
 
         } else {
-            // Contraseña no coincide
+            // ERROR: Clave mal ingresada. Ralentizamos la respuesta 2 segundos.
+            sleep(2);
             header("Location: ../public/login.php?error=1");
             exit;
         }
     } else {
-        // Usuario no existe
+        // ERROR: Usuario no existe. Ralentizamos igual para no dar pistas.
+        sleep(2);
         header("Location: ../public/login.php?error=1");
         exit;
     }

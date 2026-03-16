@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /api/
+Disallow: /tovi/
+Disallow: /seguridad/
+Disallow: /admin/
+Allow: /public/
+Sitemap: https://www.adminbase.mahg/sitemap.xml
