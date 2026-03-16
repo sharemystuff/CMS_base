@@ -156,7 +156,7 @@ Tabla 'post_meta' - Campos exactos (No inventar nombres) es para guardar campos 
     - email del usuario
     - password (sugerirá uno con random_pass())
 Al guardar, el script php usará la función encode_pass() para guardar el usuario admin. 
-También usará la función create_opcion() para guardar las siguientes opciones, pero vacías: "email", "telefono", "direccion", "og_titulo", "og_descripcion", "og_imagen", "mailer_host", "mailer_username", "mailer_password", "mailer_port"
+También usará la función create_opcion() para guardar las siguientes opciones, pero vacías: "email", "telefono", "direccion", "og_titulo", "og_descripcion", "og_imagen", "mailer_host", "mailer_username", "mailer_password", "mailer_port", "registro"
 La opción "registro" debe guardarse con el valor 1.
 La opción "recuerdame" debe guardarse con el valor "14".
 
