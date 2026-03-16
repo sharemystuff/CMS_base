@@ -53,7 +53,8 @@ function update_opcion($key, $valor) {
  */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $pass_encoded = encode_pass($password);
+    $salt = get_opcion('salt_key'); // Aseguramos que la lee
+    $pass_encoded = encode_pass($password, $salt); // Se la pasamos manual
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
@@ -65,7 +66,8 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
  */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $pass_encoded = encode_pass($password);
+    $salt = get_opcion('salt_key');
+    $pass_encoded = encode_pass($password, $salt);
     $fecha = date("Y-m-d H:i:s");
     $token = bin2hex(random_bytes(32));
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");

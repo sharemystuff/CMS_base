@@ -16,8 +16,10 @@ function email_valido($email) {
 }
 
 // Hash de contraseña (BCRYPT)
-function encode_pass($password) {
-    $salt = get_opcion('salt_key'); // Esta línea es vital
+function encode_pass($password, $manual_salt = null) {
+    $salt = $manual_salt ?? get_opcion('salt_key');
+    // Si no hay salt en DB ni manual, usamos un fallback temporal (solo para evitar hash vacío)
+    if (!$salt) { $salt = 'fallback_salt_cms_base'; } 
     return hash('sha512', $password . $salt);
 }
 
