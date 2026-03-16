@@ -1,10 +1,15 @@
 # Manejo de errores
 ErrorDocument 404 /404.php
 
-# Seguridad de cabeceras
-Header always set X-Frame-Options "SAMEORIGIN"
-Header set X-Content-Type-Options "nosniff"
-Header set X-XSS-Protection "1; mode=block"
+# Bloquear navegación de directorios
+Options -Indexes
+
+# Headers de seguridad adicionales
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
 
 # Bloquear acceso a archivos sensibles (pero permitir index y publicos)
 # <FilesMatch "\.(php|ini|log|txt)$">

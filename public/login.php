@@ -1,74 +1,70 @@
 <?php
 /* public/login.php */
-include_once __DIR__ . '/../api/main.php';
+include_once '../api/main.php';
 
-// Si ya está logueado, al admin
-if (isset($_SESSION['user_id'])) {
-    header("Location: ../admin/admin.php");
-    exit;
+$error = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. Validar CSRF (Punto 8.3)
+    if (!isset($_POST['csrf_token']) || !validarCSRF($_POST['csrf_token'])) {
+        die("Error de validación de formulario (CSRF).");
+    }
+
+    // 2. Sanitización (Punto 8.1)
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $pass = $_POST['password'];
+
+    // 3. Prepared Statement (Punto 8.2)
+    $stmt = $conexion->prepare("SELECT id, nombre, password, rol FROM usuarios WHERE email = ? AND activo = 1 LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($user = $result->fetch_assoc()) {
+        // 4. Verificación de Hash (Punto 8.2 b)
+        if (password_verify($pass, $user['password'])) {
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_nombre'] = $user['nombre'];
+            $_SESSION['user_rol'] = $user['rol'];
+            
+            header("Location: ../admin/admin.php");
+            exit;
+        }
+    }
+
+    // Retardo para prevenir fuerza bruta (Punto 8.4)
+    sleep(2);
+    // Mensaje genérico para evitar enumeración (Punto 8.5)
+    $error = "Credenciales incorrectas o cuenta inactiva.";
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CMS BASE</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-card { background: #181818; padding: 40px; border-radius: 12px; width: 100%; max-width: 350px; border: 1px solid #333; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { color: #1db954; text-align: center; margin-bottom: 30px; }
-        input { width: 100%; padding: 12px; background: #252525; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #1db954; }
-        button { width: 100%; padding: 14px; background: #1db954; border: none; font-weight: bold; border-radius: 30px; cursor: pointer; color: #000; transition: 0.3s; }
-        button:hover { background: #1ed760; transform: scale(1.02); }
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 0.85rem; text-align: center; line-height: 1.4; }
-        .alert-error { background: #441111; color: #ff9999; border: 1px solid #ff5555; }
-        .alert-success { background: #1b3321; color: #8fca9d; border: 1px solid #1db954; }
-        .footer-links { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #888; }
-        .footer-links a { color: #1db954; text-decoration: none; font-weight: bold; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <div class="login-card">
-        <h1>CMS BASE</h1>
-
-        <?php if(isset($_GET['error'])): ?>
-            <div class="alert alert-error">
-                <?php 
-                    if($_GET['error'] === 'not_active') {
-                        echo "<strong>¡Acceso restringido!</strong><br>Debes activar tu cuenta desde el email que te enviamos.";
-                    } else {
-                        echo "Email o contraseña incorrectos.";
-                    }
-                ?>
-            </div>
+    <div style="max-width:350px; margin:100px auto; padding:20px; border:1px solid #ccc; border-radius:8px;">
+        <h2>Acceso Privado</h2>
+        <?php if($error): ?>
+            <p style="color:red;"><?php echo $error; ?></p>
         <?php endif; ?>
-
-        <?php if(isset($_GET['success']) && $_GET['success'] === 'activated'): ?>
-            <div class="alert alert-success">
-                ✅ ¡Cuenta activada con éxito!<br>Ya puedes iniciar sesión.
-            </div>
-        <?php endif; ?>
-
-        <form action="../api/login_proceso.php" method="POST">
-            <input type="email" name="email" placeholder="Correo electrónico" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
-            <label style="font-size: 0.8rem; display: block; margin-bottom: 15px; cursor: pointer; color: #bbb;">
-                <input type="checkbox" name="recuerdame" style="width: auto; margin-right: 5px;"> Mantener sesión iniciada
-            </label>
-            <button type="submit">ENTRAR</button>
-        </form>
-
-        <div class="footer-links">
-            <a href="recuperar.php">¿Olvidaste tu contraseña?</a>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             
-            <?php if (get_opcion('registro') === '1'): ?>
-                <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
-                    ¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a>
-                </div>
-            <?php endif; ?>
-        </div>
+            <label>Email:</label><br>
+            <input type="email" name="email" required style="width:100%;"><br><br>
+            
+            <label>Contraseña:</label><br>
+            <input type="password" name="password" required style="width:100%;"><br><br>
+            
+            <button type="submit" style="width:100%;">Entrar</button>
+        </form>
+        <p><a href="recuperar.php">¿Olvidaste tu contraseña?</a></p>
     </div>
 </body>
 </html>

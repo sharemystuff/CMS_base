@@ -1,17 +1,23 @@
 <?php
-/* admin/logout.php */
-
 /**
  * CMS BASE - Cierre de Sesión Seguro
- * Borra todo rastro de la sesión del usuario en el servidor.
  */
+include_once '../api/main.php';
 
-session_start();
+// 1. Si hay una sesión activa, borramos el token de la base de datos
+// Esto evita que la persistencia te vuelva a loguear
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $null_token = null;
+    $stmt = $conexion->prepare("UPDATE usuarios SET session_token = ? WHERE id = ?");
+    $stmt->bind_param("si", $null_token, $user_id);
+    $stmt->execute();
+}
 
-// 1. Limpiamos todas las variables de sesión
+// 2. Limpiamos todas las variables de sesión
 $_SESSION = array();
 
-// 2. Si se desea destruir la cookie de sesión también
+// 3. Destruimos la cookie de sesión (PHPSESSID)
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,
@@ -20,9 +26,15 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// 3. Destruimos la sesión física en el servidor
+// 4. MATAMOS la cookie de persistencia (session_token)
+// Esto es lo que estaba fallando
+if (isset($_COOKIE['session_token'])) {
+    setcookie('session_token', '', time() - 42000, '/');
+}
+
+// 5. Destruimos la sesión en el servidor
 session_destroy();
 
-// 4. Redirigimos al login con un parámetro de aviso
+// 6. Redirigimos
 header("Location: ../public/login.php?mensaje=logout_exitoso");
 exit;
