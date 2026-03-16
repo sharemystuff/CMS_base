@@ -48,15 +48,15 @@ function update_opcion($key, $valor) {
 }
 
 /**
- * Crea el usuario administrador inicial (Forzamos lectura de salt)
+ * Crea el usuario administrador inicial (Sincronizado con password_verify)
  */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $salt = get_opcion('salt_key'); // Crucial: Obtener la salt recién creada
-    $pass_encoded = encode_pass($password, $salt);
+    // Usamos BCRYPT: El estándar de oro actual para PHP
+    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
-    $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded);
+    $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura);
     return $stmt->execute();
 }
 
@@ -65,12 +65,11 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
  */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $salt = get_opcion('salt_key');
-    $pass_encoded = encode_pass($password, $salt);
+    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $token = bin2hex(random_bytes(32));
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
-    $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_encoded, $token);
+    $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura, $token);
     return $stmt->execute() ? $token : false;
 }
 
