@@ -32,6 +32,9 @@ function pacheco_instalar($datos_db) {
 
 // --- GESTIÓN DE OPCIONES ---
 
+/**
+ * Crea una opción nueva (usado principalmente en la instalación)
+ */
 function create_opcion($opcion_key, $valor) {
     global $conexion;
     if (!$opcion_key) return false;
@@ -40,6 +43,9 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
+/**
+ * ACTUALIZA una opción existente
+ */
 function update_opcion($key, $valor) {
     global $conexion;
     $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
@@ -47,6 +53,9 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
+/**
+ * Recupera todas las opciones del sitio, excepto llaves privadas
+ */
 function get_all_opciones() {
     global $conexion;
     $opciones = [];
@@ -59,6 +68,9 @@ function get_all_opciones() {
     return $opciones;
 }
 
+/**
+ * Recupera una opción específica
+ */
 function get_opcion($key) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
@@ -70,6 +82,9 @@ function get_opcion($key) {
 
 // --- FUNCIONES DE USUARIO ---
 
+/**
+ * Crea el usuario administrador inicial
+ */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -79,6 +94,9 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
+/**
+ * Crea un usuario que requiere verificación por email
+ */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -89,6 +107,9 @@ function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute() ? $token : false;
 }
 
+/**
+ * Verifica si un email ya está registrado
+ */
 function user_existe($email) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
@@ -100,15 +121,22 @@ function user_existe($email) {
 
 // --- LÓGICA DE RECUPERACIÓN (PASSWORD RESET) ---
 
+/**
+ * Genera un token de recuperación que expira en 1 hora
+ */
 function generar_token_recuperacion($email) {
     global $conexion;
     $token = bin2hex(random_bytes(32));
     $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
+    
     $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
     $stmt->bind_param("sss", $token, $expira, $email);
     return $stmt->execute() ? $token : false;
 }
 
+/**
+ * Valida si un token es real y no ha expirado
+ */
 function validar_token_recuperacion($token) {
     global $conexion;
     $ahora = date("Y-m-d H:i:s");
@@ -118,35 +146,13 @@ function validar_token_recuperacion($token) {
     return $stmt->get_result()->num_rows > 0;
 }
 
+/**
+ * Cambia la contraseña y limpia el token para que no se use de nuevo
+ */
 function actualizar_password_recuperada($token, $nueva_pass) {
     global $conexion;
     $pass_segura = password_hash($nueva_pass, PASSWORD_BCRYPT);
     $stmt = $conexion->prepare("UPDATE usuarios SET password = ?, reset_token = NULL, reset_expira = NULL WHERE reset_token = ?");
     $stmt->bind_param("ss", $pass_segura, $token);
-    return $stmt->execute();
-}
-
-// --- LÓGICA DE INTENTOS DE LOGIN (DB-MODEL) ---
-
-function registrar_intento_fallido($ip, $email) {
-    global $conexion;
-    $stmt = $conexion->prepare("INSERT INTO login_intentos (ip, email) VALUES (?, ?)");
-    $stmt->bind_param("ss", $ip, $email);
-    return $stmt->execute();
-}
-
-function contar_intentos_fallidos($ip) {
-    global $conexion;
-    // Buscamos fallos en los últimos 5 minutos
-    $stmt = $conexion->prepare("SELECT COUNT(*) as total FROM login_intentos WHERE ip = ? AND fecha > (NOW() - INTERVAL 5 MINUTE)");
-    $stmt->bind_param("s", $ip);
-    $stmt->execute();
-    return $stmt->get_result()->fetch_assoc()['total'];
-}
-
-function limpiar_intentos_ip($ip) {
-    global $conexion;
-    $stmt = $conexion->prepare("DELETE FROM login_intentos WHERE ip = ?");
-    $stmt->bind_param("s", $ip);
     return $stmt->execute();
 }
