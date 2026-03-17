@@ -2,78 +2,79 @@
 /* public/login.php */
 include_once __DIR__ . '/../api/main.php';
 
+// Si ya está logueado, al panel
 if (checking()) {
     header("Location: ../admin/admin.php");
     exit;
 }
 
 $error = "";
-$ip_actual = get_client_ip();
-$intentos = contar_intentos_fallidos($ip_actual);
-$limite_intentos = 5;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $intentos < $limite_intentos) {
-    if (!isset($_POST['csrf_token']) || !validarCSRF($_POST['csrf_token'])) {
-        die("Sesión inválida.");
-    }
-    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $pass = $_POST['password'];
+// Procesar Login
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Aquí es donde fallaba: validamos que la función exista antes de llamarla
+    // o nos aseguramos de que seguridad/funciones.php esté cargado en main.php
+    if (validarCSRF($_POST['csrf_token'] ?? '')) {
+        $user = limpiar_entrada($_POST['user']);
+        $pass = $_POST['pass'];
 
-    $stmt = $conexion->prepare("SELECT id, nombre, nickname, password, rol, activo FROM usuarios WHERE email = ? LIMIT 1");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($user = $result->fetch_assoc()) {
-        if ($user['activo'] != 1) {
-            $error = "Cuenta inactiva. Revisa tu email.";
-        } 
-        elseif (password_verify($pass, $user['password'])) {
-            limpiar_intentos_ip($ip_actual);
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_nombre'] = $user['nombre'];
-            $_SESSION['user_nickname'] = $user['nickname'];
-            $_SESSION['user_rol'] = $user['rol'];
+        if (login($user, $pass)) {
             header("Location: ../admin/admin.php");
             exit;
         } else {
-            registrar_intento_fallido($ip_actual, $email);
-            $error = "Credenciales incorrectas.";
+            $error = "Usuario o contraseña incorrectos.";
         }
     } else {
-        registrar_intento_fallido($ip_actual, $email);
-        $error = "Credenciales incorrectas.";
+        $error = "Error de validación de seguridad (CSRF).";
     }
-    sleep(1); 
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Login - CMS BASE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - CMS BASE</title>
     <link rel="icon" type="image/x-icon" href="<?php echo asset('assets/images/iconos/favicon.ico'); ?>">
     <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
 <body style="display:flex; align-items:center; min-height:100vh;">
+
     <div class="caja">
         <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo">
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
+            <h1>Iniciar Sesión</h1>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">Accede al panel administrativo</p>
         </div>
-        <h1>CMS BASE</h1>
-        <?php if($error): ?><div class="alerta alerta-error"><?php echo $error; ?></div><?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="alerta alerta-error"><?php echo $error; ?></div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'activated'): ?>
+            <div class="alerta alerta-exito">¡Cuenta activada! Ya puedes iniciar sesión.</div>
+        <?php endif; ?>
+
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-            <label>Email</label>
-            <input type="email" name="email" class="campo" required <?php if($intentos >= $limite_intentos) echo 'disabled'; ?>>
+
+            <label>Nickname o Email</label>
+            <input type="text" name="user" class="campo" placeholder="pelin_dev" required autofocus>
+
             <label>Contraseña</label>
-            <input type="password" name="password" class="campo" required <?php if($intentos >= $limite_intentos) echo 'disabled'; ?>>
-            <button type="submit" class="boton" <?php if($intentos >= $limite_intentos) echo 'disabled'; ?>>ENTRAR</button>
+            <input type="password" name="pass" class="campo" placeholder="••••••••" required>
+
+            <button type="submit" class="boton">ENTRAR AL SISTEMA</button>
         </form>
-        <p class="txt-centro" style="margin-top:20px; font-size:0.8rem;">
-            <a href="recuperar.php" class="enlace">¿Olvidaste tu contraseña?</a>
-        </p>
+
+        <div class="txt-centro" style="margin-top: 25px;">
+            <a href="recuperar.php" class="enlace" style="font-size: 0.85rem;">¿Olvidaste tu contraseña?</a>
+            <hr style="border: 0; border-top: 1px solid var(--ui); margin: 20px 0;">
+            <p style="font-size: 0.85rem; color: #666;">
+                ¿No tienes cuenta? <a href="registro.php" class="enlace">Regístrate</a>
+            </p>
+        </div>
     </div>
+
 </body>
 </html>
