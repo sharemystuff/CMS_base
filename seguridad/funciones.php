@@ -9,27 +9,30 @@ function e($string) {
 }
 
 /**
- * CAPA DE ENTRADA: Limpieza de datos (Blindada contra Email Injection).
+ * CAPA DE ENTRADA: Limpieza de datos.
  */
 function limpiar_entrada($data) {
     if (is_array($data)) {
         return array_map('limpiar_entrada', $data);
     }
     $data = trim($data);
-    // Elimina saltos de línea para evitar Email Header Injection
     $data = str_replace(["\r", "\n"], '', $data);
     return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 
-// Validación de email estándar
+/**
+ * Obtiene la IP real del cliente, incluso tras proxies.
+ */
+function get_client_ip() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    return $_SERVER['REMOTE_ADDR'];
+}
+
 function email_valido($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-/**
- * Verificación de contraseña compatible con BCRYPT
- * Nota: Ya no usamos encode_pass manual con SHA512.
- */
 function verificar_pass($pass, $hash_en_db) {
     return password_verify($pass, $hash_en_db);
 }
@@ -57,4 +60,18 @@ function intentar_auto_login($conexion) {
         }
     }
     return false;
+}
+
+/**
+ * BLOQUEO DE ACCESO RESTRINGIDO
+ */
+function restringir_acceso($roles_permitidos = ['admin', 'owner']) {
+    if (!checking()) {
+        header('Location: ../public/login.php');
+        exit;
+    }
+    if (!in_array($_SESSION['user_rol'], $roles_permitidos)) {
+        header('Location: admin.php?error=no_permission');
+        exit;
+    }
 }

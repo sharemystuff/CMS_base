@@ -86,3 +86,11 @@ Stack trace:
 Stack trace:
 #0 {main}
   thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:42:08 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:52:03 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7

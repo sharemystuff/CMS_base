@@ -1,23 +1,15 @@
 <?php
 /* admin/opciones.php */
-include_once '../api/main.php';
+include_once __DIR__ . '/../api/main.php';
 
-// Verificamos si el usuario tiene permiso (Solo admin/owner)
-if (!checking() || ($_SESSION['user_rol'] !== 'admin' && $_SESSION['user_rol'] !== 'owner')) {
-    header('Location: ../public/login.php');
-    exit;
-}
+// Bloqueo elegante: solo admin y owner entran aquí
+restringir_acceso(['admin', 'owner']);
 
 $mensaje = "";
 
-// Procesar el formulario cuando se envía
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
-    
-    // Validamos el token CSRF por seguridad
     if (isset($_POST['csrf_token']) && validarCSRF($_POST['csrf_token'])) {
         
-        // Actualizamos cada opción. 
-        // Usamos limpiar_entrada para todo excepto para la contraseña (por si tiene caracteres especiales)
         update_opcion('recuerdame', limpiar_entrada($_POST['recuerdame']));
         update_opcion('registro', isset($_POST['registro']) ? '1' : '0');
         update_opcion('mailer_host', limpiar_entrada($_POST['mailer_host']));
@@ -25,12 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
         update_opcion('mailer_password', $_POST['mailer_password']); 
         update_opcion('mailer_port', limpiar_entrada($_POST['mailer_port']));
         
-        // Refrescamos el array global para que el formulario muestre los datos actualizados
         $OPC = get_all_opciones();
         $mensaje = "✅ Opciones actualizadas correctamente.";
         
     } else {
-        $mensaje = "❌ Error de validación de seguridad (CSRF). Intente de nuevo.";
+        $mensaje = "❌ Error de validación de seguridad (CSRF).";
     }
 }
 ?>
@@ -42,12 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     <link rel="stylesheet" href="../assets/css/themify-icons.css">
     <link rel="stylesheet" href="css/admin.css">
     <style>
-        /* Ajustes de legibilidad */
         .config-form h3 { color: #1db954; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .config-form label { display: block; color: #efefef; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; }
-        .config-form input[type="text"], 
-        .config-form input[type="number"], 
-        .config-form input[type="password"] { 
+        .config-form input[type="text"], .config-form input[type="number"], .config-form input[type="password"] { 
             width: 100%; padding: 12px; margin-bottom: 20px; background: #252525; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;
         }
         .config-form input:focus { border-color: #1db954; outline: none; }
@@ -79,28 +67,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
                     ¿Permitir nuevos registros de usuarios?
                 </label>
 
-                <h3>Configuración de Correo (PHPMailer)</h3>
-                <p style="color: #888; font-size: 0.8rem; margin-bottom: 20px;">Necesario para recuperación de contraseñas y notificaciones.</p>
-                
+                <h3>Configuración de Correo</h3>
                 <label>Servidor SMTP (Host)</label>
-                <input type="text" name="mailer_host" value="<?php echo e($OPC['mailer_host'] ?? ''); ?>" placeholder="ej: mail.tusitio.com">
-                
+                <input type="text" name="mailer_host" value="<?php echo e($OPC['mailer_host'] ?? ''); ?>">
                 <label>Usuario (Email)</label>
-                <input type="text" name="mailer_username" value="<?php echo e($OPC['mailer_username'] ?? ''); ?>" placeholder="ej: no-reply@tusitio.com">
-                
+                <input type="text" name="mailer_username" value="<?php echo e($OPC['mailer_username'] ?? ''); ?>">
                 <label>Contraseña</label>
                 <input type="password" name="mailer_password" value="<?php echo e($OPC['mailer_password'] ?? ''); ?>">
-                
                 <label>Puerto</label>
-                <input type="text" name="mailer_port" value="<?php echo e($OPC['mailer_port'] ?? '465'); ?>" placeholder="465 (SSL) o 587 (TLS)">
+                <input type="text" name="mailer_port" value="<?php echo e($OPC['mailer_port'] ?? '465'); ?>">
 
-                <button type="submit" name="save_options" style="background: #1db954; color: #000; padding: 15px 40px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 20px;">
+                <button type="submit" name="save_options" style="background: #1db954; color: #000; padding: 15px 40px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;">
                     <i class="ti-save"></i> Guardar Cambios
                 </button>
             </form>
         </main>
     </div>
-
     <?php include_once 'sec-footer.php'; ?>
 </body>
 </html>
