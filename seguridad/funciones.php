@@ -21,7 +21,49 @@ function limpiar_entrada($data) {
 }
 
 /**
- * Obtiene la IP real del cliente, incluso tras proxies.
+ * Verifica el token CSRF con comparación de tiempo constante.
+ */
+function validarCSRF($token_recibido) {
+    if (!isset($_SESSION['csrf_token']) || empty($token_recibido)) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token_recibido);
+}
+
+/**
+ * Lógica de autenticación centralizada por EMAIL.
+ * Ajustada a la estructura: id, nombre, nickname, email, password, rol, activo.
+ */
+function login($email, $pass_plano) {
+    global $conexion;
+    if (!$conexion) return false;
+
+    // Ajustado: La columna es 'password'
+    $stmt = $conexion->prepare("SELECT id, nombre, nickname, password, rol, activo FROM usuarios WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    if ($user = $resultado->fetch_assoc()) {
+        // Verificamos si la cuenta está activa (1) y la clave coincide
+        if ($user['activo'] == 1 && password_verify($pass_plano, $user['password'])) {
+            
+            // Seguridad: Regenerar ID tras login exitoso
+            session_regenerate_id(true);
+
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_nombre'] = $user['nombre'];
+            $_SESSION['user_nickname'] = $user['nickname'];
+            $_SESSION['user_rol'] = $user['rol'];
+
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Obtiene la IP real del cliente.
  */
 function get_client_ip() {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
@@ -33,10 +75,6 @@ function email_valido($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-function verificar_pass($pass, $hash_en_db) {
-    return password_verify($pass, $hash_en_db);
-}
-
 /**
  * Intenta realizar un Auto-Login seguro mediante Cookie
  */
@@ -45,6 +83,7 @@ function intentar_auto_login($conexion) {
         $token_recibido = $_COOKIE['session_token'];
         $token_hash = hash('sha256', $token_recibido);
 
+        // Ajustado a tus columnas: session_token, activo, etc.
         $stmt = $conexion->prepare("SELECT id, nombre, nickname, rol FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
         $stmt->bind_param("s", $token_hash);
         $stmt->execute();
