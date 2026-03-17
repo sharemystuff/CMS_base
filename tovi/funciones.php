@@ -1,9 +1,31 @@
 <?php
-/* tovi/funciones.php */
-
 /**
  * CMS BASE - FUNCIONES CORE (TOVI)
  */
+
+/**
+ * Retorna la URL base del sitio con detección inteligente
+ */
+function url_base() {
+    global $OPC;
+    if (!empty($OPC['url_sitio'])) return rtrim($OPC['url_sitio'], '/');
+    
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+    $dir = str_replace('/tovi', '', dirname($script));
+    $dir = str_replace('/public', '', $dir);
+    return $protocol . "://" . $host . rtrim($dir, '/');
+}
+
+/**
+ * Carga un asset con cache-busting
+ */
+function asset($ruta) {
+    $full_path = __DIR__ . '/../' . ltrim($ruta, '/');
+    $version = file_exists($full_path) ? filemtime($full_path) : '1.0';
+    return url_base() . '/' . ltrim($ruta, '/') . '?v=' . $version;
+}
 
 /**
  * Instala la base de datos y crea las tablas necesarias
@@ -28,17 +50,12 @@ function pacheco_instalar($datos_db) {
         $conn->query("CREATE TABLE IF NOT EXISTS `$nombre` ($campos)"); 
     }
 
-    // INYECCIÓN QUIRÚRGICA: Estado inicial de instalación
     $conn->query("INSERT IGNORE INTO opciones (opcion_key, opcion_dato) VALUES ('estado', 'instalando')");
-
     return $conn;
 }
 
 // --- GESTIÓN DE OPCIONES ---
 
-/**
- * Crea una opción nueva
- */
 function create_opcion($opcion_key, $valor) {
     global $conexion;
     if (!$opcion_key) return false;
@@ -47,9 +64,6 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * ACTUALIZA una opción existente
- */
 function update_opcion($key, $valor) {
     global $conexion;
     $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
@@ -57,9 +71,6 @@ function update_opcion($key, $valor) {
     return $stmt->execute();
 }
 
-/**
- * Recupera todas las opciones del sitio, excepto llaves privadas
- */
 function get_all_opciones() {
     global $conexion;
     $opciones = [];
@@ -72,9 +83,6 @@ function get_all_opciones() {
     return $opciones;
 }
 
-/**
- * Recupera una opción específica
- */
 function get_opcion($key) {
     global $conexion;
     if (!isset($conexion) || $conexion->connect_error) return false;
@@ -87,9 +95,6 @@ function get_opcion($key) {
 
 // --- FUNCIONES DE USUARIO ---
 
-/**
- * Crea el usuario administrador inicial
- */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -99,9 +104,6 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
-/**
- * Crea un usuario que requiere verificación por email
- */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -112,9 +114,6 @@ function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute() ? $token : false;
 }
 
-/**
- * Verifica si un email ya está registrado
- */
 function user_existe($email) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
@@ -124,24 +123,17 @@ function user_existe($email) {
     return ($res->num_rows > 0);
 }
 
-// --- LÓGICA DE RECUPERACIÓN (PASSWORD RESET) ---
+// --- LÓGICA DE RECUPERACIÓN ---
 
-/**
- * Genera un token de recuperación
- */
 function generar_token_recuperacion($email) {
     global $conexion;
     $token = bin2hex(random_bytes(32));
     $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
-    
     $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
     $stmt->bind_param("sss", $token, $expira, $email);
     return $stmt->execute() ? $token : false;
 }
 
-/**
- * Valida si un token es real
- */
 function validar_token_recuperacion($token) {
     global $conexion;
     $ahora = date("Y-m-d H:i:s");
@@ -151,9 +143,6 @@ function validar_token_recuperacion($token) {
     return $stmt->get_result()->num_rows > 0;
 }
 
-/**
- * Cambia la contraseña
- */
 function actualizar_password_recuperada($token, $nueva_pass) {
     global $conexion;
     $pass_segura = password_hash($nueva_pass, PASSWORD_BCRYPT);

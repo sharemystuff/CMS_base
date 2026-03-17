@@ -1,0 +1,119 @@
+/* assets/css/estilos.css */
+/* HTTP://MEYERWEB.COM/ERIC/TOOLS/CSS/RESET/ | V2.0 */
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}
+body{line-height:1}
+ol,ul{list-style:none}
+blockquote,q{quotes:none}
+blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}
+table{border-collapse:collapse;border-spacing:0}
+
+/* VARIABLES CMS BASE */
+:root {
+    --primario: #7A006C;
+    --secundario: #9C1A8E;
+    --acento: #F2C94C;
+    --fondo: #F5F6F8;
+    --ui: #D9DCE1;
+    --texto: #222222;
+    --blanco: #ffffff;
+    --error: #ff5555;
+    --exito: #27ae60;
+}
+
+/* ESTILOS GENERALES */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--fondo);
+    color: var(--texto);
+    line-height: 1.6;
+}
+
+.caja {
+    background: var(--blanco);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid var(--ui);
+    max-width: 400px;
+    width: 90%;
+    margin: 20px auto;
+}
+
+h1, h2 {
+    color: var(--primario);
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 800;
+}
+
+/* FORMULARIOS */
+.campo {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--ui);
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background: #fff;
+    transition: 0.3s;
+}
+
+.campo:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(122, 0, 108, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.boton {
+    display: inline-block;
+    width: 100%;
+    padding: 14px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.boton:hover {
+    background: var(--secundario);
+    transform: translateY(-2px);
+}
+
+.boton-acento {
+    background: var(--acento);
+    color: var(--primario);
+}
+
+/* ALERTAS */
+.alerta {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.alerta-error { background: #ffebeb; color: var(--error); border-color: var(--error); }
+.alerta-exito { background: #e9f7ef; color: var(--exito); border-color: var(--exito); }
+
+/* UTILIDADES */
+.txt-centro { text-align: center; }
+.enlace { color: var(--primario); text-decoration: none; font-weight: 600; }
+.enlace:hover { text-decoration: underline; }
