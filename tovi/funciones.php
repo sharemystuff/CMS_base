@@ -27,13 +27,17 @@ function pacheco_instalar($datos_db) {
     foreach ($tablas as $nombre => $campos) { 
         $conn->query("CREATE TABLE IF NOT EXISTS `$nombre` ($campos)"); 
     }
+
+    // INYECCIÓN QUIRÚRGICA: Estado inicial de instalación
+    $conn->query("INSERT IGNORE INTO opciones (opcion_key, opcion_dato) VALUES ('estado', 'instalando')");
+
     return $conn;
 }
 
 // --- GESTIÓN DE OPCIONES ---
 
 /**
- * Crea una opción nueva (usado principalmente en la instalación)
+ * Crea una opción nueva
  */
 function create_opcion($opcion_key, $valor) {
     global $conexion;
@@ -73,6 +77,7 @@ function get_all_opciones() {
  */
 function get_opcion($key) {
     global $conexion;
+    if (!isset($conexion) || $conexion->connect_error) return false;
     $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
     $stmt->bind_param("s", $key);
     $stmt->execute();
@@ -122,7 +127,7 @@ function user_existe($email) {
 // --- LÓGICA DE RECUPERACIÓN (PASSWORD RESET) ---
 
 /**
- * Genera un token de recuperación que expira en 1 hora
+ * Genera un token de recuperación
  */
 function generar_token_recuperacion($email) {
     global $conexion;
@@ -135,7 +140,7 @@ function generar_token_recuperacion($email) {
 }
 
 /**
- * Valida si un token es real y no ha expirado
+ * Valida si un token es real
  */
 function validar_token_recuperacion($token) {
     global $conexion;
@@ -147,7 +152,7 @@ function validar_token_recuperacion($token) {
 }
 
 /**
- * Cambia la contraseña y limpia el token para que no se use de nuevo
+ * Cambia la contraseña
  */
 function actualizar_password_recuperada($token, $nueva_pass) {
     global $conexion;

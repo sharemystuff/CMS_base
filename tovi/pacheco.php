@@ -1,20 +1,26 @@
 <?php
 /* tovi/pacheco.php */
 
-// --- BLOQUEO DE RE-INSTALACIÓN ---
-// Ahora chequeamos config.php que es nuestro estándar
-if (file_exists(__DIR__ . '/../api/config.php')) {
-    header('Location: ../index.php');
-    exit;
-}
-
 define('INSTALACION_PERMITIDA', true);
 
-require_once __DIR__ . '/../seguridad/funciones.php';
-require_once __DIR__ . '/funciones.php';
+// Incluimos main.php para heredar toda la lógica de conexión y carga de funciones
+require_once __DIR__ . '/../api/main.php';
 
 $error = ""; 
 $fase = 1; 
+
+// DETECCIÓN INTELIGENTE DE FASE (Cerebro de Pacheco)
+if (isset($conexion) && !$conexion->connect_error) {
+    $estado_actual = get_opcion('estado');
+    
+    if ($estado_actual === 'instalando') {
+        $fase = 2; // Si ya hay DB pero falta admin, saltamos a fase 2 aunque se recargue la página
+    } elseif ($estado_actual === 'live') {
+        // Si ya está todo listo, Pacheco se retira
+        header('Location: /index.php');
+        exit;
+    }
+}
 
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
 $url_sugerida = $protocol . "://" . $_SERVER['HTTP_HOST'];
@@ -31,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
     $resultado_conn = pacheco_instalar($datos_db);
 
     if ($resultado_conn) {
-        global $conexion; 
+        // Inyectamos la conexión manualmente para este paso
         $conexion = $resultado_conn;
         
         $master_salt = bin2hex(random_bytes(32));
@@ -45,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         create_opcion('mailer_password', '');
         create_opcion('mailer_port', '465');
 
-        // Generamos api/config.php (Sin redirecciones internas para evitar bucles)
         $contenido_config = "<?php\n";
         $contenido_config .= "// Configuración de CMS BASE generada por Pacheco\n";
         $contenido_config .= "\$DB_DATOS = [\n";
@@ -56,15 +61,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         $contenido_config .= "];\n";
         
         file_put_contents(__DIR__ . '/../api/config.php', $contenido_config);
-        $fase = 2;
+        
+        // Redirigimos a sí mismo para que el "Cerebro" detecte el nuevo archivo y pase a Fase 2
+        header("Location: pacheco.php");
+        exit;
     } else { $error = "❌ Error de conexión a la base de datos."; }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
-    // Cargamos lo que acabamos de crear
-    if (file_exists(__DIR__ . '/../api/config.php')) {
-        require_once __DIR__ . '/../api/main.php'; 
-        if (create_user_admin(limpiar_entrada($_POST['admin_nombre']), 'admin', limpiar_entrada($_POST['admin_email']), 'admin', $_POST['admin_pass'])) {
+    if (isset($conexion)) {
+        $nombre = limpiar_entrada($_POST['admin_nombre']);
+        $email = limpiar_entrada($_POST['admin_email']);
+        $pass = $_POST['admin_pass'];
+
+        if (create_user_admin($nombre, 'admin', $email, 'admin', $pass)) {
+            // ¡FINALIZADO! Cambiamos el estado a LIVE
+            update_opcion('estado', 'live');
             $fase = 3;
         } else { $error = "❌ Error al crear la cuenta de administrador."; }
     }
@@ -114,13 +126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
                 <input type="email" name="admin_email" required>
                 <label>Password Admin</label>
                 <input type="password" name="admin_pass" required>
+                <?php if($error): ?><p class="error-msg"><?php echo $error; ?></p><?php endif; ?>
                 <button type="submit" name="crear_admin">FINALIZAR INSTALACIÓN</button>
             </form>
         <?php else: ?>
             <div style="text-align:center; padding: 20px;">
                 <h2 style="color:#1db954;">✅ ¡Listo!</h2>
-                <p>Configuración completada.</p>
-                <a href="../public/login.php" style="color:#1db954; font-weight:bold; text-decoration:none;">Ir al Login →</a>
+                <p>Configuración completada correctamente.</p>
+                <a href="/public/login.php" style="color:#1db954; font-weight:bold; text-decoration:none;">Ir al Login →</a>
             </div>
         <?php endif; ?>
     </div>
