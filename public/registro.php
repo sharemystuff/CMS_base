@@ -40,7 +40,7 @@ if (checking()) {
 <body style="display:flex; align-items:center; min-height:100vh;">
     <div class="caja">
         <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/icons/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
         </div>
         
         <div id="contenedor-formulario">

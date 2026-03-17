@@ -388,6 +388,11 @@ https://raw.githubusercontent.com/sharemystuff/CMS_base/refs/heads/main/admin/ad
 - Metodología de entrega de código: La IA debe entregar siempre los archivos en su versión completa (sin recortes por agilidad) para asegurar que el desarrollador pueda copiar y pegar el bloque íntegro sin errores de integración. 
 - Tras cada hito exitoso, se realizará un commit conmemorativo.
 - Cada vez que se crea algo nuevo, la implementación debe ser consecuente con las medidas de seguridad implementadas. Las funciones deben adaptarse a la seguridad, no al revés.
+- Mi entorno de desarrollo funciona con XAMPP. Estoy corriendo CMS BASE en un servidor virtual al que accedo a traves de "https://www.adminbase.mahg/"
+- Corre bajo https gracias a mkcert
+- Dispongo además de otro servidor virtual "https://www.lab.mahg/" que uso como "laboratorio" de pruebas de diferentes cosas. 
+Tener mis proyectos con https me ayuda a desarrollarlos sin problemas de http inseguro, no poder cargar ciertos servicios porque estan en https y yo en http solamente. 
+De modo que si necesitas hacer pruebas que requieran otro servidor, https://www.lab.mahg/ está disponible para que le pongamos scripts que llamen a https://www.adminbase.mahg/ y probemos lo que se necesite
 
 ============================================================
 8. MEDIDAS DE SEGURIDAD YA IMPLEMENTADAS
@@ -413,10 +418,6 @@ Amenaza Neutralizada,Medida Tomada,Ubicación en el Código,Por qué es Crítico
 9. ESTADO ACTUAL Y PRÓXIMOS PASOS
 ============================================================
 - CMS BASE ya tiene practicamente toda la sección de login y registro completo. Hay que corregir algunas inconsistencias y errores provocados por la implementación de una robusta seguridad contra todo tipo de ataques externos.
-
-Errores que entrega CMS BASE tal como está hasta ahora:
-- index.php (raíz) da este error: "Fatal error: Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:8 Stack trace: #0 {main} thrown in D:\WWW\adminBase\index.php on line 8"
-- Al cerrar sesión en admin se puede volver a entrar a "admin/admin.php". El acceso sigue permitido.
 
 - Está faltando la sección de recuperación de contraseña y toda la lógica envuelta
 - Está faltando la implementación de url amigables
