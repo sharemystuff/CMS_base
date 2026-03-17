@@ -3,7 +3,7 @@
 
 define('INSTALACION_PERMITIDA', true);
 
-// REPARACIÓN QUIRÚRGICA: Cargamos funciones antes que nada para evitar el "Undefined function"
+// REPARACIÓN QUIRÚRGICA: Cargamos funciones antes que nada
 require_once __DIR__ . '/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';
 
@@ -20,7 +20,7 @@ if (isset($conexion) && !$conexion->connect_error) {
     if ($estado_actual === 'instalando') {
         $fase = 2; // Inmune al F5
     } elseif ($estado_actual === 'live') {
-        header('Location: /public/index.php');
+        header('Location: ' . url_base() . '/public/index.php');
         exit;
     }
 }
@@ -85,58 +85,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/x-icon" href="/assets/images/iconos/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="<?php echo asset('assets/images/iconos/favicon.ico'); ?>">
     <title>CMS BASE - Instalación</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #eee; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; border: 1px solid #333; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #F2C94C; text-align: center; margin-bottom: 20px; }
-        label { display: block; font-size: 0.8rem; color: #888; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #7A006C; }
-        button { width: 100%; padding: 12px; background: #7A006C; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; color: #fff; transition: 0.3s; }
-        button:hover { background: #9C1A8E; }
-        .error-msg { color: #ff5555; font-size: 0.8rem; text-align: center; margin-bottom: 10px; }
-    </style>
+    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
-<body>
-    <div class="card">
-        <div style="text-align:center; margin-bottom:10px;"><img src="/assets/images/icons/logo.svg" width="60" alt="Logo"></div>
+<body style="display:flex; align-items:center; min-height:100vh;">
+    <div class="caja">
+        <div class="txt-centro">
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
+        </div>
         <h1>CMS BASE</h1>
+        
         <?php if ($fase == 1): ?>
+            <p class="txt-centro" style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Fase 1: Configuración del Núcleo</p>
             <form method="POST">
                 <label>URL del Sitio</label>
-                <input type="text" name="sitio_url" value="<?php echo $url_sugerida; ?>" required>
+                <input type="text" name="sitio_url" class="campo" value="<?php echo $url_sugerida; ?>" required>
+                
                 <label>Host DB</label>
-                <input type="text" name="db_host" value="localhost">
+                <input type="text" name="db_host" class="campo" value="localhost">
+                
                 <label>Usuario DB</label>
-                <input type="text" name="db_user" placeholder="ej: root" required>
+                <input type="text" name="db_user" class="campo" placeholder="ej: root" required>
+                
                 <label>Password DB</label>
-                <input type="password" name="db_pass">
+                <input type="password" name="db_pass" class="campo">
+                
                 <label>Nombre DB</label>
-                <input type="text" name="db_name" required>
-                <?php if($error): ?><p class="error-msg"><?php echo $error; ?></p><?php endif; ?>
-                <button type="submit" name="instalar_db">CONFIGURAR NÚCLEO</button>
+                <input type="text" name="db_name" class="campo" placeholder="Nombre de la base de datos" required>
+                
+                <?php if($error): ?><div class="alerta alerta-error"><?php echo $error; ?></div><?php endif; ?>
+                
+                <button type="submit" name="instalar_db" class="boton">CONFIGURAR NÚCLEO</button>
             </form>
+
         <?php elseif ($fase == 2): ?>
+            <p class="txt-centro" style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Fase 2: Cuenta Maestra</p>
             <form method="POST">
-                <p style="text-align:center; color:#bbb;">Base de datos lista. Crea el Administrador.</p>
+                <div class="alerta alerta-exito" style="text-align:center;">Base de datos lista. Crea el Administrador.</div>
+                
                 <label>Nombre Completo</label>
-                <input type="text" name="admin_nombre" required>
+                <input type="text" name="admin_nombre" class="campo" placeholder="Tu nombre" required>
+                
                 <label>Email Admin</label>
-                <input type="email" name="admin_email" required>
+                <input type="email" name="admin_email" class="campo" placeholder="email@admin.com" required>
+                
                 <label>Password Admin</label>
-                <input type="password" name="admin_pass" required>
-                <?php if($error): ?><p class="error-msg"><?php echo $error; ?></p><?php endif; ?>
-                <button type="submit" name="crear_admin">FINALIZAR INSTALACIÓN</button>
+                <input type="password" name="admin_pass" class="campo" placeholder="Contraseña segura" required>
+                
+                <?php if($error): ?><div class="alerta alerta-error"><?php echo $error; ?></div><?php endif; ?>
+                
+                <button type="submit" name="crear_admin" class="boton">FINALIZAR INSTALACIÓN</button>
             </form>
+
         <?php else: ?>
-            <div style="text-align:center; padding: 20px;">
-                <h2 style="color:#F2C94C;">✅ ¡Despegue exitoso!</h2>
-                <p>Configuración completada correctamente.</p>
-                <a href="/public/login.php" style="color:#F2C94C; font-weight:bold; text-decoration:none;">Ir al Login →</a>
+            <div class="txt-centro" style="padding: 20px;">
+                <h2 style="color:var(--secundario);">✅ ¡Despegue exitoso!</h2>
+                <p style="margin: 20px 0; color: #666;">El núcleo de CMS BASE está operativo.</p>
+                <a href="<?php echo url_base(); ?>/public/login.php" class="boton" style="text-decoration:none; display:block;">IR AL LOGIN →</a>
             </div>
         <?php endif; ?>
+        
+        <p class="txt-centro" style="margin-top:20px; font-size: 0.7rem; color: #ccc; letter-spacing: 1px;">
+            PACHECO INSTALLER v3.0
+        </p>
     </div>
 </body>
 </html>

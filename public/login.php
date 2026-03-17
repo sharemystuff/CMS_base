@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $intentos < $limite_intentos) {
 <body style="display:flex; align-items:center; min-height:100vh;">
     <div class="caja">
         <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/icons/logo.svg'); ?>" width="60" alt="Logo">
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo">
         </div>
         <h1>CMS BASE</h1>
         <?php if($error): ?><div class="alerta alerta-error"><?php echo $error; ?></div><?php endif; ?>
