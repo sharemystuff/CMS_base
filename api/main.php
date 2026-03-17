@@ -1,88 +1,88 @@
 <?php
 /* api/main.php */
-date_default_timezone_set('America/Santiago');
 
-// 1. Configuración de Sesión Segura
+/**
+ * CMS BASE - ARCHIVO MAESTRO DE CARGA
+ * Centraliza la configuración, seguridad y funciones core.
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
-    $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
-    
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.use_only_cookies', 1);
-    ini_set('session.cookie_samesite', $is_secure ? 'Strict' : 'Lax');
-    if ($is_secure) ini_set('session.cookie_secure', 1);
-
     session_start();
 }
 
-// 2. Escudo contra Revelación de Rutas (Error Handling)
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
-error_reporting(E_ALL);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../seguridad/php_errors.log');
+// 1. GESTIÓN DE LA INSTALACIÓN (Pacheco)
+// Detectamos si ya estamos en la carpeta tovi para evitar bucles de redirección
+$es_instalador = (strpos($_SERVER['PHP_SELF'], '/tovi/') !== false);
 
-// 3. Cabeceras de Seguridad Globales
-header("X-Frame-Options: DENY");
-header("X-Content-Type-Options: nosniff");
-header("Referrer-Policy: strict-origin-when-cross-origin");
+if (!file_exists(__DIR__ . '/config.php')) {
+    if (!$es_instalador) {
+        header("Location: tovi/pacheco.php");
+        exit;
+    }
+} else {
+    // Si el archivo existe, cargamos la configuración
+    require_once __DIR__ . '/config.php';
+    
+    // Conexión principal a la base de datos
+    $conexion = @new mysqli($DB_DATOS['host'], $DB_DATOS['user'], $DB_DATOS['pass'], $DB_DATOS['name']);
+    
+    if ($conexion->connect_error) {
+        if (!$es_instalador) {
+            header("Location: tovi/pacheco.php?error=db_connection");
+            exit;
+        }
+    } else {
+        $conexion->set_charset("utf8mb4");
+    }
+}
 
-// 4. Carga de Dependencias
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/../tovi/funciones.php';
-require_once __DIR__ . '/../seguridad/funciones.php';
+// 2. CARGA DE CAPAS DE FUNCIONES
+// Solo cargamos si los archivos existen para evitar Fatal Errors durante la instalación limpia
+if (file_exists(__DIR__ . '/../tovi/funciones.php')) {
+    require_once __DIR__ . '/../tovi/funciones.php';
+}
 
-// 5. Carga de Opciones Globales
-global $OPC;
-$OPC = get_all_opciones();
+if (file_exists(__DIR__ . '/funciones_model.php')) {
+    require_once __DIR__ . '/funciones_model.php';
+}
 
-// 6. Token CSRF Automático
-if (empty($_SESSION['csrf_token'])) {
+if (file_exists(__DIR__ . '/../seguridad/funciones.php')) {
+    require_once __DIR__ . '/../seguridad/funciones.php';
+}
+
+// 3. INICIALIZACIÓN DE OPCIONES GLOBALES
+$OPC = [];
+if (isset($conexion) && !$conexion->connect_error) {
+    // Solo intentamos leer opciones si la tabla existe
+    $check_table = $conexion->query("SHOW TABLES LIKE 'opciones'");
+    if ($check_table && $check_table->num_rows > 0) {
+        $OPC = get_all_opciones();
+    }
+}
+
+// 4. LÓGICA DE SESIÓN Y AUTO-LOGIN
+/**
+ * Verifica si hay una sesión activa.
+ */
+function checking() {
+    return isset($_SESSION['user_id']);
+}
+
+// Si no hay sesión, intentamos recuperar mediante cookie
+if (!checking() && isset($conexion) && !$conexion->connect_error) {
+    if (file_exists(__DIR__ . '/../seguridad/funciones.php')) {
+        intentar_auto_login($conexion);
+    }
+}
+
+// 5. CSRF PROTECTION (Generación de token si no existe)
+if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 /**
- * Verifica sesión activa o persistencia por cookie (Actualizado a BCRYPT)
- */
-function checking() {
-    global $conexion;
-
-    if (isset($_SESSION['user_id'])) {
-        return true;
-    }
-
-    if (isset($_COOKIE['session_token'])) {
-        $token_recibido = $_COOKIE['session_token'];
-        $token_hash_recibido = hash('sha256', $token_recibido);
-        
-        $stmt = $conexion->prepare("SELECT id, nombre, nickname, rol, activo FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
-        $stmt->bind_param("s", $token_hash_recibido);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        if ($user = $res->fetch_assoc()) {
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_nombre'] = $user['nombre'];
-            $_SESSION['user_nickname'] = $user['nickname'];
-            $_SESSION['user_rol'] = $user['rol'];
-            return true;
-        } else {
-            setcookie('session_token', '', time() - 3600, '/');
-        }
-    }
-    return false;
-}
-
-/**
- * Valida el Token CSRF y el origen (Referer)
+ * Valida el token CSRF recibido
  */
 function validarCSRF($token) {
-    if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
-        return false;
-    }
-    if (isset($_SERVER['HTTP_REFERER'])) {
-        $host_peticion = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
-        if ($host_peticion !== $_SERVER['SERVER_NAME']) return false;
-    }
-    return true;
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
