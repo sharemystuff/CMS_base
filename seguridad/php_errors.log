@@ -1,0 +1,20 @@
+[16-Mar-2026 20:41:04 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 20:41:48 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 22:57:59 America/Santiago] PHP Fatal error:  Uncaught Error: Call to undefined function update_opcion() in D:\WWW\adminBase\admin\opciones.php:9
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\admin\opciones.php on line 9
+[16-Mar-2026 22:58:23 America/Santiago] PHP Fatal error:  Uncaught Error: Call to undefined function update_opcion() in D:\WWW\adminBase\admin\opciones.php:9
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\admin\opciones.php on line 9
+[16-Mar-2026 23:10:22 America/Santiago] PHP Fatal error:  Uncaught Error: Call to undefined function update_opcion() in D:\WWW\adminBase\admin\opciones.php:21
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\admin\opciones.php on line 21

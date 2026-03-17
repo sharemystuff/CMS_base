@@ -5,6 +5,9 @@
  * CMS BASE - FUNCIONES CORE (TOVI)
  */
 
+/**
+ * Instala la base de datos y crea las tablas necesarias
+ */
 function pacheco_instalar($datos_db) {
     $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
     if ($conn->connect_error) return false;
@@ -23,6 +26,11 @@ function pacheco_instalar($datos_db) {
     return $conn;
 }
 
+// --- GESTIÓN DE OPCIONES ---
+
+/**
+ * Crea una opción nueva (usado principalmente en la instalación)
+ */
 function create_opcion($opcion_key, $valor) {
     global $conexion;
     if (!$opcion_key) return false;
@@ -31,10 +39,24 @@ function create_opcion($opcion_key, $valor) {
     return $stmt->execute();
 }
 
+/**
+ * ACTUALIZA una opción existente (LA QUE FALTABA)
+ */
+function update_opcion($key, $valor) {
+    global $conexion;
+    $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
+    $stmt->bind_param("ss", $valor, $key);
+    return $stmt->execute();
+}
+
+/**
+ * Recupera todas las opciones del sitio, excepto llaves privadas
+ */
 function get_all_opciones() {
     global $conexion;
     $opciones = [];
-    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('url_sitio', 'salt_key')");
+    // Nota: Quitamos salt_key por seguridad, pero permitimos url_sitio para el funcionamiento global
+    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('salt_key')");
     if ($resultado) {
         while ($row = $resultado->fetch_assoc()) {
             $opciones[$row['opcion_key']] = $row['opcion_dato'];
@@ -43,6 +65,9 @@ function get_all_opciones() {
     return $opciones;
 }
 
+/**
+ * Recupera una opción específica
+ */
 function get_opcion($key) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
@@ -54,6 +79,9 @@ function get_opcion($key) {
 
 // --- FUNCIONES DE USUARIO ---
 
+/**
+ * Crea el usuario administrador inicial
+ */
 function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -63,6 +91,9 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
+/**
+ * Crea un usuario que requiere verificación por email
+ */
 function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -73,6 +104,9 @@ function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute() ? $token : false;
 }
 
+/**
+ * Verifica si un email ya está registrado
+ */
 function user_existe($email) {
     global $conexion;
     $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
@@ -82,7 +116,7 @@ function user_existe($email) {
     return ($res->num_rows > 0);
 }
 
-// --- LÓGICA DE RECUPERACIÓN ---
+// --- LÓGICA DE RECUPERACIÓN (PASSWORD RESET) ---
 
 /**
  * Genera un token de recuperación que expira en 1 hora
