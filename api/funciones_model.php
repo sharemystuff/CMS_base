@@ -1,6 +1,10 @@
 <?php
 /* api/funciones_model.php */
 
+require __DIR__ . '/../tools/vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 /**
  * CMS BASE - MODELO DE DATOS DE LA API
  */
@@ -13,7 +17,6 @@ if (!function_exists('get_all_opciones')) {
     function get_all_opciones() {
         global $conexion;
         $opciones = [];
-        // Ajustado a tus columnas: opcion_key, opcion_dato
         $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('salt_key')");
         if ($resultado) {
             while ($row = $resultado->fetch_assoc()) {
@@ -60,24 +63,15 @@ function purgar_intentos_viejos() {
 // 3. LÓGICA DE RECUPERACIÓN DE CONTRASEÑA
 // ============================================================
 
-/**
- * Genera token y actualiza la DB.
- */
 function generar_token_recuperacion($email) {
     global $conexion;
     $token = bin2hex(random_bytes(32));
     $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
-    
-    // Verificamos que sea un usuario activo antes de marcar el token
     $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
     $stmt->bind_param("sss", $token, $expira, $email);
-    
     return ($stmt->execute() && $conexion->affected_rows > 0) ? $token : false;
 }
 
-/**
- * Valida token y tiempo. Retorna datos del usuario.
- */
 function validar_token_recuperacion($token) {
     global $conexion;
     if (empty($token)) return false;
@@ -89,13 +83,46 @@ function validar_token_recuperacion($token) {
     return $res->fetch_assoc();
 }
 
-/**
- * Proceso final de cambio de clave.
- */
 function actualizar_password_recuperada($token, $nueva_pass) {
     global $conexion;
     $pass_segura = password_hash($nueva_pass, PASSWORD_BCRYPT);
     $stmt = $conexion->prepare("UPDATE usuarios SET password = ?, reset_token = NULL, reset_expira = NULL WHERE reset_token = ?");
     $stmt->bind_param("ss", $pass_segura, $token);
     return $stmt->execute();
+}
+
+// ============================================================
+// 4. MOTOR DE ENVÍO DE CORREOS (UNIFICADO)
+// ============================================================
+
+function enviar_email($destinatario, $asunto, $cuerpo_html) {
+    // Usamos las funciones de obtención de opciones que ya existen
+    $m_host = get_opcion('mailer_host');
+    $m_user = get_opcion('mailer_username');
+    $m_pass = get_opcion('mailer_password');
+    $m_port = get_opcion('mailer_port');
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = $m_host;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $m_user;
+        $mail->Password   = $m_pass;
+        $mail->Port       = $m_port;
+        $mail->CharSet    = 'UTF-8';
+        $mail->SMTPSecure = ($m_port == 465) ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+
+        $mail->setFrom($m_user, 'Admin CMS BASE');
+        $mail->addAddress($destinatario);
+
+        $mail->isHTML(true);
+        $mail->Subject = $asunto;
+        $mail->Body    = $cuerpo_html;
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
 }
