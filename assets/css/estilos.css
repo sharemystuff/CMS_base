@@ -1,193 +1,410 @@
 /* assets/css/estilos.css */
 
 /* HTTP://MEYERWEB.COM/ERIC/TOOLS/CSS/RESET/ | V2.0 */
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}
-article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}
-body{line-height:1}
-ol,ul{list-style:none}
-blockquote,q{quotes:none}
-blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}
-table{border-collapse:collapse;border-spacing:0}
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol,
+ul {
+  list-style: none;
+}
+blockquote,
+q {
+  quotes: none;
+}
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: "";
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
 
 /* VARIABLES CMS BASE */
 :root {
-    --primario: #7A006C;
-    --secundario: #9C1A8E;
-    --acento: #F2C94C;
-    --fondo: #F5F6F8;
-    --ui: #D9DCE1;
-    --texto: #222222;
-    --blanco: #ffffff;
-    --error: #ff5555;
-    --exito: #27ae60;
-    --sombra: rgba(0, 0, 0, 0.05);
+  --primario: #7a006c;
+  --secundario: #9c1a8e;
+  --acento: #f2c94c;
+  --fondo: #f5f6f8;
+  --ui: #d9dce1;
+  --texto: #222222;
+  --blanco: #ffffff;
+  --error: #ff5555;
+  --exito: #27ae60;
+  --sombra: rgba(0, 0, 0, 0.05);
 }
 
 /* ESTILOS GENERALES */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--fondo);
-    color: var(--texto);
-    line-height: 1.6;
-    scroll-behavior: smooth;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--fondo);
+  color: var(--texto);
+  line-height: 1.6;
+  scroll-behavior: smooth;
 }
 
-h1, h2, h3 {
-    color: var(--primario);
-    font-weight: 800;
+h1,
+h2,
+h3 {
+  color: var(--primario);
+  font-weight: 800;
 }
 
 /* COMPONENTES DE INTERFAZ */
 .caja {
-    background: var(--blanco);
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px var(--sombra);
-    border: 1px solid var(--ui);
-    max-width: 400px;
-    width: 90%;
-    margin: 20px auto;
+  background: var(--blanco);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px var(--sombra);
+  border: 1px solid var(--ui);
+  max-width: 400px;
+  width: 90%;
+  margin: 20px auto;
 }
 
 /* NAVEGACIÓN */
-nav { 
-    background: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(10px);
-    height: 70px; 
-    display: flex; 
-    align-items: center; 
-    padding: 0 6%; 
-    position: fixed; 
-    width: 100%; 
-    box-sizing: border-box; 
-    z-index: 100; 
-    border-bottom: 1px solid var(--sombra);
+nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding: 0 6%;
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 100;
+  border-bottom: 1px solid var(--sombra);
 }
 
 /* HERO SECTION */
-.hero { 
-    height: 100vh; 
-    background: radial-gradient(circle at top right, var(--secundario), var(--primario)); 
-    display: flex; 
-    align-items: center; 
-    padding: 0 6%; 
-    color: white; 
-    position: relative;
-    overflow: hidden;
+.hero {
+  height: 100vh;
+  background: radial-gradient(
+    circle at top right,
+    var(--secundario),
+    var(--primario)
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 6%;
+  color: white;
+  position: relative;
+  overflow: hidden;
 }
 
-.hero-content { max-width: 800px; z-index: 1; }
-.hero-content h1 { 
-    color: white;
-    font-size: clamp(3rem, 8vw, 5rem); 
-    margin: 0; 
-    line-height: 0.9; 
-    letter-spacing: -3px; 
+.hero-content {
+  max-width: 800px;
+  z-index: 1;
+}
+.hero-content h1 {
+  color: white;
+  font-size: clamp(3rem, 8vw, 5rem);
+  margin: 0;
+  line-height: 0.9;
+  letter-spacing: -3px;
 }
 
 /* FEATURES GRID */
-.features { 
-    padding: 100px 6%; 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-    gap: 40px; 
-    background: #fafafa;
+.features {
+  padding: 100px 6%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  background: #fafafa;
 }
 
 .caja-feature {
-    background: white;
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid var(--ui);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid var(--ui);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  text-align: center;
 }
 
 .caja-feature:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px var(--sombra);
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px var(--sombra);
 }
 
 /* FORMULARIOS */
 .campo {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid var(--ui);
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 1rem;
-    background: #fff;
-    transition: 0.3s;
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid var(--ui);
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 1rem;
+  background: #fff;
+  transition: 0.3s;
 }
 
 .campo:focus {
-    outline: none;
-    border-color: var(--primario);
-    box-shadow: 0 0 0 3px rgba(122, 0, 108, 0.1);
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 3px rgba(122, 0, 108, 0.1);
 }
 
 label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #666;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
 }
 
 /* BOTONES */
 .boton {
-    display: inline-block;
-    padding: 14px 28px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 50px; /* Estilo píldora */
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: 0.3s;
-    border: 2px solid transparent;
+  display: inline-block;
+  padding: 14px 28px;
+  background: var(--primario);
+  color: white;
+  border: none;
+  border-radius: 50px; /* Estilo píldora */
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: 0.3s;
+  border: 2px solid transparent;
 }
 
 .boton:hover {
-    background: var(--secundario);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(122, 0, 108, 0.2);
+  background: var(--secundario);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(122, 0, 108, 0.2);
 }
 
 .boton-acento {
-    background: var(--acento);
-    color: var(--primario);
+  background: var(--acento);
+  color: var(--primario);
 }
 
 /* ALERTAS */
 .alerta {
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
-    text-align: center;
-    border: 1px solid transparent;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid transparent;
 }
 
-.alerta-error { background: #ffebeb; color: var(--error); border-color: var(--error); }
-.alerta-exito { background: #e9f7ef; color: var(--exito); border-color: var(--exito); }
+.alerta-error {
+  background: #ffebeb;
+  color: var(--error);
+  border-color: var(--error);
+}
+.alerta-exito {
+  background: #e9f7ef;
+  color: var(--exito);
+  border-color: var(--exito);
+}
 
 /* UTILIDADES */
-.txt-centro { text-align: center; }
-.enlace { color: var(--primario); text-decoration: none; font-weight: 600; transition: 0.3s; }
-.enlace:hover { color: var(--secundario); text-decoration: underline; }
+.txt-centro {
+  text-align: center;
+}
+.enlace {
+  color: var(--primario);
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.enlace:hover {
+  color: var(--secundario);
+  text-decoration: underline;
+}
 
 /* ANIMACIONES */
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada para los formularios */
+.animated {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fadeIn {
+  animation-name: fadeIn;
+}
+
+/* Micro-interacción en el logo */
+.logo-anim {
+  transition: transform 0.3s ease;
+}
+.logo-anim:hover {
+  transform: rotate(-5deg) scale(1.1);
+}
+
+/* Mejoras en las alertas */
+.alerta {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-left: 4px solid transparent;
+}
+.alerta-exito {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-left-color: #4caf50;
+}
+.alerta-error {
+  background: #ffebee;
+  color: #c62828;
+  border-left-color: #f44336;
+}
+
+/* Estilo para los textos muted */
+.txt-muted {
+  color: #888;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.btn-block {
+  width: 100%;
+  display: block;
+}
+.mt-20 {
+  margin-top: 20px;
 }

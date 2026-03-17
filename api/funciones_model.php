@@ -66,7 +66,7 @@ function purgar_intentos_viejos() {
 function generar_token_recuperacion($email) {
     global $conexion;
     $token = bin2hex(random_bytes(32));
-    $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
+    $expira = date("Y-m-d H:i:s", strtotime('+5 minutes'));
     $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
     $stmt->bind_param("sss", $token, $expira, $email);
     return ($stmt->execute() && $conexion->affected_rows > 0) ? $token : false;
