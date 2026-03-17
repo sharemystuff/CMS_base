@@ -3,32 +3,41 @@
 
 /**
  * CMS BASE - ARCHIVO MAESTRO DE CARGA
- * Centraliza la configuración, seguridad y funciones core.
  */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. GESTIÓN DE LA INSTALACIÓN (Pacheco)
-// Detectamos si ya estamos en la carpeta tovi para evitar bucles de redirección
-$es_instalador = (strpos($_SERVER['PHP_SELF'], '/tovi/') !== false);
+// 1. DETERMINAR RUTAS Y ESTADO
+$script_actual = $_SERVER['PHP_SELF'];
+$es_instalador = (strpos($script_actual, '/tovi/') !== false);
 
+// Determinamos la ruta base para redirecciones consistentes
+// Si tu proyecto está en una subcarpeta (ej: /cms/), esto lo detectará
+$base_path = rtrim(str_replace(basename($script_actual), '', $script_actual), '/');
+// Ajuste para cuando estamos en subcarpetas profundas
+if ($es_instalador) {
+    $base_url = str_replace('/tovi', '', $base_path);
+} else {
+    $base_url = $base_path;
+}
+
+// 2. GESTIÓN DE LA INSTALACIÓN (Pacheco)
 if (!file_exists(__DIR__ . '/config.php')) {
     if (!$es_instalador) {
-        header("Location: tovi/pacheco.php");
+        // Redirección absoluta relativa a la raíz del sitio
+        header("Location: " . $base_url . "/tovi/pacheco.php");
         exit;
     }
 } else {
-    // Si el archivo existe, cargamos la configuración
     require_once __DIR__ . '/config.php';
     
-    // Conexión principal a la base de datos
     $conexion = @new mysqli($DB_DATOS['host'], $DB_DATOS['user'], $DB_DATOS['pass'], $DB_DATOS['name']);
     
     if ($conexion->connect_error) {
         if (!$es_instalador) {
-            header("Location: tovi/pacheco.php?error=db_connection");
+            header("Location: " . $base_url . "/tovi/pacheco.php?error=db_connection");
             exit;
         }
     } else {
@@ -36,53 +45,41 @@ if (!file_exists(__DIR__ . '/config.php')) {
     }
 }
 
-// 2. CARGA DE CAPAS DE FUNCIONES
-// Solo cargamos si los archivos existen para evitar Fatal Errors durante la instalación limpia
+// 3. CARGA DE FUNCIONES (Solo si existen)
 if (file_exists(__DIR__ . '/../tovi/funciones.php')) {
-    require_once __DIR__ . '/../tovi/funciones.php';
+    include_once __DIR__ . '/../tovi/funciones.php';
 }
-
 if (file_exists(__DIR__ . '/funciones_model.php')) {
-    require_once __DIR__ . '/funciones_model.php';
+    include_once __DIR__ . '/funciones_model.php';
 }
-
 if (file_exists(__DIR__ . '/../seguridad/funciones.php')) {
-    require_once __DIR__ . '/../seguridad/funciones.php';
+    include_once __DIR__ . '/../seguridad/funciones.php';
 }
 
-// 3. INICIALIZACIÓN DE OPCIONES GLOBALES
+// 4. LÓGICA DE OPCIONES
 $OPC = [];
 if (isset($conexion) && !$conexion->connect_error) {
-    // Solo intentamos leer opciones si la tabla existe
     $check_table = $conexion->query("SHOW TABLES LIKE 'opciones'");
     if ($check_table && $check_table->num_rows > 0) {
         $OPC = get_all_opciones();
     }
 }
 
-// 4. LÓGICA DE SESIÓN Y AUTO-LOGIN
-/**
- * Verifica si hay una sesión activa.
- */
+// 5. SESIÓN Y CSRF
 function checking() {
     return isset($_SESSION['user_id']);
 }
 
-// Si no hay sesión, intentamos recuperar mediante cookie
 if (!checking() && isset($conexion) && !$conexion->connect_error) {
-    if (file_exists(__DIR__ . '/../seguridad/funciones.php')) {
+    if (function_exists('intentar_auto_login')) {
         intentar_auto_login($conexion);
     }
 }
 
-// 5. CSRF PROTECTION (Generación de token si no existe)
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-/**
- * Valida el token CSRF recibido
- */
 function validarCSRF($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
