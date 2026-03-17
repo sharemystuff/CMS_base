@@ -1,5 +1,13 @@
 <?php
 /* tovi/pacheco.php */
+
+// --- BLOQUEO DE RE-INSTALACIÓN ---
+// Si el archivo de base de datos ya existe, redirigimos al inicio inmediatamente.
+if (file_exists(__DIR__ . '/../api/db.php')) {
+    header('Location: ../index.php');
+    exit;
+}
+
 define('INSTALACION_PERMITIDA', true);
 
 require_once __DIR__ . '/../seguridad/funciones.php';
@@ -20,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         'name' => $_POST['db_name']
     ];
     
-    // Nueva variable desde el formulario
     $url_sitio = rtrim($_POST['sitio_url'], '/'); 
 
     $resultado_conn = pacheco_instalar($datos_db);
@@ -33,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
 
         // Opciones Críticas de Seguridad
         create_opcion('salt_key', $master_salt);
-        create_opcion('url_sitio', $url_sitio); // Ahora usa lo ingresado por el usuario
+        create_opcion('url_sitio', $url_sitio); 
         create_opcion('recuerdame', '30'); 
         create_opcion('registro', '0'); 
         create_opcion('mailer_host', '');
@@ -41,10 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         create_opcion('mailer_password', '');
         create_opcion('mailer_port', '465');
 
-        // Generar api/db.php
-        $contenido_db = "<?php\nmysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);\n";
-        $contenido_db .= "try {\n    \$conexion = new mysqli('{$datos_db['host']}', '{$datos_db['user']}', '{$datos_db['pass']}', '{$datos_db['name']}');\n";
-        $contenido_db .= "    \$conexion->set_charset('utf8mb4');\n} catch (Exception \$e) { header('Location: /tovi/pacheco.php'); exit; }\n";
+        // Generar api/db.php con blindaje contra acceso directo
+        $contenido_db = "<?php\n";
+        $contenido_db .= "// Archivo generado automáticamente por Pacheco\n";
+        $contenido_db .= "mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);\n";
+        $contenido_db .= "try {\n";
+        $contenido_db .= "    \$conexion = new mysqli('{$datos_db['host']}', '{$datos_db['user']}', '{$datos_db['pass']}', '{$datos_db['name']}');\n";
+        $contenido_db .= "    \$conexion->set_charset('utf8mb4');\n";
+        $contenido_db .= "} catch (Exception \$e) {\n";
+        $contenido_db .= "    // Si falla la conexión, solo entonces permitimos ver el instalador\n";
+        $contenido_db .= "    header('Location: /tovi/pacheco.php'); exit;\n";
+        $contenido_db .= "}\n";
         
         file_put_contents(__DIR__ . '/../api/db.php', $contenido_db);
         $fase = 2;

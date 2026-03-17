@@ -18,3 +18,71 @@ Stack trace:
 Stack trace:
 #0 {main}
   thrown in D:\WWW\adminBase\admin\opciones.php on line 21
+[16-Mar-2026 23:26:34 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:40 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:41 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:45 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:47 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:48 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:27:52 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:09 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:10 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:13 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:13 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:14 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:14 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:15 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:29:19 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:31:21 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7
+[16-Mar-2026 23:31:25 America/Santiago] PHP Fatal error:  Uncaught Error: Undefined constant "AUTH_SALT" in D:\WWW\adminBase\index.php:7
+Stack trace:
+#0 {main}
+  thrown in D:\WWW\adminBase\index.php on line 7

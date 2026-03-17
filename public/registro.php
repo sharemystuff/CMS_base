@@ -33,6 +33,8 @@ if (isset($_SESSION['user_id'])) {
         <div id="contenedor-formulario">
             <h1>Únete a nosotros</h1>
             <form id="formRegistro">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                
                 <input type="text" name="nombre" placeholder="Nombre completo" required>
                 <input type="text" name="nickname" placeholder="Nickname" required>
                 <input type="email" name="email" placeholder="Correo electrónico" required>
@@ -76,6 +78,9 @@ if (isset($_SESSION['user_id'])) {
                 } else {
                     msg.innerHTML = `<span class="err">${data.message}</span>`;
                 }
+            })
+            .catch(error => {
+                msg.innerHTML = `<span class="err">Error en la conexión con el servidor.</span>`;
             });
         });
     </script>
