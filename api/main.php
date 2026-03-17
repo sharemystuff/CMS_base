@@ -42,7 +42,8 @@ if (!file_exists($path_config)) {
 
         // 5. CARGA DEL MODELO
         if (file_exists(__DIR__ . '/funciones_model.php')) {
-            include_once __DIR__ . '/funciones_model.php';
+            // Usamos require_once para evitar redeclaraciones accidentales
+            require_once __DIR__ . '/funciones_model.php';
         }
 
         // 6. VALIDACIÓN DE ESTADO DEL SISTEMA

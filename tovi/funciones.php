@@ -1,11 +1,10 @@
 <?php
+/* tovi/funciones.php */
+
 /**
  * CMS BASE - FUNCIONES CORE (TOVI)
  */
 
-/**
- * Retorna la URL base del sitio con detección inteligente
- */
 function url_base() {
     global $OPC;
     if (!empty($OPC['url_sitio'])) return rtrim($OPC['url_sitio'], '/');
@@ -18,18 +17,12 @@ function url_base() {
     return $protocol . "://" . $host . rtrim($dir, '/');
 }
 
-/**
- * Carga un asset con cache-busting
- */
 function asset($ruta) {
     $full_path = __DIR__ . '/../' . ltrim($ruta, '/');
     $version = file_exists($full_path) ? filemtime($full_path) : '1.0';
     return url_base() . '/' . ltrim($ruta, '/') . '?v=' . $version;
 }
 
-/**
- * Instala la base de datos y crea las tablas necesarias
- */
 function pacheco_instalar($datos_db) {
     $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
     if ($conn->connect_error) return false;
@@ -54,43 +47,51 @@ function pacheco_instalar($datos_db) {
     return $conn;
 }
 
-// --- GESTIÓN DE OPCIONES ---
+// --- GESTIÓN DE OPCIONES (Protegidas contra redeclaración) ---
 
-function create_opcion($opcion_key, $valor) {
-    global $conexion;
-    if (!$opcion_key) return false;
-    $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
-    $stmt->bind_param("ss", $opcion_key, $valor);
-    return $stmt->execute();
-}
-
-function update_opcion($key, $valor) {
-    global $conexion;
-    $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
-    $stmt->bind_param("ss", $valor, $key);
-    return $stmt->execute();
-}
-
-function get_all_opciones() {
-    global $conexion;
-    $opciones = [];
-    $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('salt_key')");
-    if ($resultado) {
-        while ($row = $resultado->fetch_assoc()) {
-            $opciones[$row['opcion_key']] = $row['opcion_dato'];
-        }
+if (!function_exists('create_opcion')) {
+    function create_opcion($opcion_key, $valor) {
+        global $conexion;
+        if (!$opcion_key) return false;
+        $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?)");
+        $stmt->bind_param("ss", $opcion_key, $valor);
+        return $stmt->execute();
     }
-    return $opciones;
 }
 
-function get_opcion($key) {
-    global $conexion;
-    if (!isset($conexion) || $conexion->connect_error) return false;
-    $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
-    $stmt->bind_param("s", $key);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
+if (!function_exists('update_opcion')) {
+    function update_opcion($key, $valor) {
+        global $conexion;
+        $stmt = $conexion->prepare("UPDATE opciones SET opcion_dato = ? WHERE opcion_key = ?");
+        $stmt->bind_param("ss", $valor, $key);
+        return $stmt->execute();
+    }
+}
+
+if (!function_exists('get_all_opciones')) {
+    function get_all_opciones() {
+        global $conexion;
+        $opciones = [];
+        $resultado = $conexion->query("SELECT opcion_key, opcion_dato FROM opciones WHERE opcion_key NOT IN ('salt_key')");
+        if ($resultado) {
+            while ($row = $resultado->fetch_assoc()) {
+                $opciones[$row['opcion_key']] = $row['opcion_dato'];
+            }
+        }
+        return $opciones;
+    }
+}
+
+if (!function_exists('get_opcion')) {
+    function get_opcion($key) {
+        global $conexion;
+        if (!isset($conexion) || $conexion->connect_error) return false;
+        $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
+        $stmt->bind_param("s", $key);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
+    }
 }
 
 // --- FUNCIONES DE USUARIO ---
@@ -121,32 +122,4 @@ function user_existe($email) {
     $stmt->execute();
     $res = $stmt->get_result();
     return ($res->num_rows > 0);
-}
-
-// --- LÓGICA DE RECUPERACIÓN ---
-
-function generar_token_recuperacion($email) {
-    global $conexion;
-    $token = bin2hex(random_bytes(32));
-    $expira = date("Y-m-d H:i:s", strtotime('+1 hour'));
-    $stmt = $conexion->prepare("UPDATE usuarios SET reset_token = ?, reset_expira = ? WHERE email = ? AND activo = 1");
-    $stmt->bind_param("sss", $token, $expira, $email);
-    return $stmt->execute() ? $token : false;
-}
-
-function validar_token_recuperacion($token) {
-    global $conexion;
-    $ahora = date("Y-m-d H:i:s");
-    $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE reset_token = ? AND reset_expira > ? LIMIT 1");
-    $stmt->bind_param("ss", $token, $ahora);
-    $stmt->execute();
-    return $stmt->get_result()->num_rows > 0;
-}
-
-function actualizar_password_recuperada($token, $nueva_pass) {
-    global $conexion;
-    $pass_segura = password_hash($nueva_pass, PASSWORD_BCRYPT);
-    $stmt = $conexion->prepare("UPDATE usuarios SET password = ?, reset_token = NULL, reset_expira = NULL WHERE reset_token = ?");
-    $stmt->bind_param("ss", $pass_segura, $token);
-    return $stmt->execute();
 }

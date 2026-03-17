@@ -2,13 +2,13 @@
 /* public/recuperar.php */
 include_once __DIR__ . '/../api/main.php';
 
-// Seguridad: Si ya está logueado, al admin.
+// Seguridad: Si ya está logueado, fuera de aquí
 if (checking()) {
     header("Location: ../admin/admin.php");
     exit;
 }
 
-// Anti-caché para evitar volver atrás
+// Cabeceras Anti-Caché para máxima seguridad
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 
@@ -16,19 +16,20 @@ $mensaje = "";
 $tipo_alerta = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. Validar CSRF
     if (validarCSRF($_POST['csrf_token'] ?? '')) {
         $email = limpiar_entrada($_POST['email']);
         
         if (email_valido($email)) {
+            // 2. Generar token (Función unificada en funciones_model.php)
             $token = generar_token_recuperacion($email);
             
             if ($token) {
-                // AQUÍ IRÍA EL ENVÍO DE EMAIL (PHPMailer)
-                // Por ahora simulamos que se envió.
-                // $link = url_base() . "/public/reset.php?token=" . $token;
+                // AQUÍ SE ENVIARÍA EL EMAIL REAL CON PHPMailer
+                // El link sería: url_base() . "/public/reset.php?token=" . $token
             }
             
-            // SEGURIDAD: Siempre mostramos éxito aunque el email no exista
+            // SEGURIDAD: Respuesta genérica para evitar enumeración de usuarios
             $mensaje = "Si el correo está registrado, recibirás un enlace de recuperación en unos minutos.";
             $tipo_alerta = "exito";
         } else {
@@ -36,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tipo_alerta = "error";
         }
     } else {
-        $mensaje = "Error de seguridad. Intenta de nuevo.";
+        $mensaje = "Error de validación de seguridad. Intenta de nuevo.";
         $tipo_alerta = "error";
     }
 }
@@ -45,18 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperar Contraseña - CMS BASE</title>
     <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
-<body style="display:flex; align-items:center; min-height:100vh;">
+<body class="flex-center">
 
-    <div class="caja">
+    <div class="caja login-box">
         <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="50" alt="Logo">
-            <h1>Recuperar Clave</h1>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">
-                Te enviaremos un enlace para restablecer tu acceso.
-            </p>
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo">
+            <h1>Recuperar Acceso</h1>
+            <p class="txt-muted">Escribe tu email para restablecer tu contraseña.</p>
         </div>
 
         <?php if ($mensaje): ?>
@@ -64,18 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <?php if ($tipo_alerta !== 'exito'): ?>
-        <form method="POST">
+        <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             
-            <label>Tu Correo Electrónico</label>
-            <input type="email" name="email" class="campo" placeholder="ejemplo@correo.com" required autofocus>
+            <div class="grupo-campo">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" class="campo" placeholder="tu@email.com" required autofocus>
+            </div>
             
-            <button type="submit" class="boton">ENVIAR INSTRUCCIONES</button>
+            <button type="submit" class="boton btn-block">ENVIAR ENLACE</button>
         </form>
         <?php endif; ?>
 
-        <div class="txt-centro" style="margin-top: 20px;">
-            <a href="login.php" class="enlace" style="font-size: 0.85rem;">← Volver al login</a>
+        <div class="txt-centro mt-20">
+            <a href="login.php" class="enlace">← Volver al inicio de sesión</a>
         </div>
     </div>
 
