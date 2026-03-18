@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($token) {
                 $enlace = url_base() . "/public/reset.php?token=" . $token;
-                $logo_url = url_base() . "/assets/images/iconos/logo.svg";
+                $logo_url = url_base() . "/assets/images/iconos/logo.png";
                 $asunto = "Restablecer contraseña - " . (get_opcion('nombre_sitio') ?? 'CMS BASE');
                 
                 $cuerpo = "
