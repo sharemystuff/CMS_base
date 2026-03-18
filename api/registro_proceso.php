@@ -14,22 +14,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $nombre   = limpiar_entrada($_POST['nombre']);
-    $nickname = limpiar_entrada($_POST['nickname']);
-    $email    = limpiar_entrada($_POST['email']);
-    $pass     = $_POST['pass']; 
+    $nombre   = limpiar_entrada($_POST['nombre'] ?? '');
+    $nickname = limpiar_entrada($_POST['nickname'] ?? '');
+    $email    = limpiar_entrada($_POST['email'] ?? '');
+    // Importante: No sanitizar HTML en la clave para no corromper el hash
+    $pass     = limpiar_entrada($_POST['pass'] ?? '', true); 
 
-    if (user_existe($email)) {
+    if (empty($nombre) || empty($email) || empty($pass)) {
+        $resp["message"] = "Todos los campos son obligatorios.";
+    } elseif (!email_valido($email)) {
+        $resp["message"] = "El formato de email no es válido.";
+    } elseif (user_existe($email)) {
         $resp["message"] = "Ese correo ya está registrado.";
     } else {
+        // La función create_user_pendiente ya usa PASSWORD_BCRYPT internamente
         $token = create_user_pendiente($nombre, $nickname, $email, 'editor', $pass);
         
         if ($token) {
-            $base_url = get_opcion('url_sitio');
+            $base_url = url_base();
             $link = $base_url . "/public/confirmar.php?token=" . $token;
-            $asunto = 'Confirma tu cuenta - CMS BASE';
+            $asunto = 'Confirma tu cuenta - ' . (get_opcion('titulo_sitio') ?? 'CMS BASE');
+            
             $cuerpo = "
-                <div style='font-family: sans-serif; border: 1px solid #333; padding: 25px; border-radius: 10px; background: #ffffff; color: #333;'>
+                <div style='font-family: sans-serif; border: 1px solid #eee; padding: 25px; border-radius: 10px; background: #ffffff; color: #333; max-width: 600px; margin: auto;'>
                     <h2 style='color: #7A006C;'>¡Hola $nombre!</h2>
                     <p>Gracias por registrarte en nuestro sistema. Para empezar a usar tu cuenta, por favor confírmala haciendo clic en el siguiente botón:</p>
                     <div style='text-align: center; margin: 30px 0;'>
@@ -41,11 +48,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (enviar_email($email, $asunto, $cuerpo)) {
                 $resp = ["status" => "success", "message" => "Registro completado. Revisa tu email para activar la cuenta."];
             } else {
-                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un error al enviar el email de activación."];
+                // Si falla el mail, al menos el usuario ya existe (puedes activarlo manual)
+                $resp = ["status" => "success", "message" => "Usuario creado, pero hubo un problema enviando el correo de activación."];
             }
         } else {
-            $resp["message"] = "Error al procesar el registro en la base de datos.";
+            $resp["message"] = "Error crítico al crear el usuario en la base de datos.";
         }
     }
+    
+    header('Content-Type: application/json');
+    echo json_encode($resp);
+    exit;
 }
-echo json_encode($resp);

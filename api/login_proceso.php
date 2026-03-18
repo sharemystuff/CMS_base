@@ -3,55 +3,37 @@
 include_once __DIR__ . '/main.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = limpiar_entrada($_POST['email']);
-    $pass = $_POST['password'];
+    // Usamos el parámetro false en limpiar_entrada para el password
+    $email = limpiar_entrada($_POST['email'] ?? '');
+    $pass = limpiar_entrada($_POST['pass'] ?? '', true); 
     $recuerdame = isset($_POST['recuerdame']);
 
     if (!$conexion) {
         die('Error de conexión.');
     }
 
-    $stmt = $conexion->prepare('SELECT id, password, nombre, activo, rol FROM usuarios WHERE email = ? LIMIT 1');
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-
-    if ($u = $resultado->fetch_assoc()) {
-        if ($u['activo'] != 1) {
-            header('Location: ../public/login.php?error=not_active');
-            exit;
+    // Usamos la función centralizada de login de seguridad/funciones.php
+    if (login($email, $pass)) {
+        // Si el login fue exitoso, manejamos el "recuérdame"
+        if ($recuerdame) {
+            $token = bin2hex(random_bytes(32));
+            $token_hash = hash('sha256', $token);
+            $dias = get_opcion('recuerdame') ? (int) get_opcion('recuerdame') : 30;
+            
+            $stmt_token = $conexion->prepare('UPDATE usuarios SET session_token = ? WHERE id = ?');
+            $stmt_token->bind_param('si', $token_hash, $_SESSION['user_id']);
+            $stmt_token->execute();
+            
+            $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+            setcookie('session_token', $token, time() + (86400 * $dias), '/', '', $is_secure, true);
         }
 
-        if (encode_pass($pass) === $u['password']) {
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $u['id'];
-            $_SESSION['user_nombre'] = $u['nombre'];
-            $_SESSION['user_rol'] = $u['rol'];
-
-            if ($recuerdame) {
-                $token = bin2hex(random_bytes(32));
-                $dias = get_opcion('recuerdame') ? (int) get_opcion('recuerdame') : 30;
-                $stmt_token = $conexion->prepare('UPDATE usuarios SET session_token = ? WHERE id = ?');
-                $stmt_token->bind_param('si', $token, $u['id']);
-                $stmt_token->execute();
-                // El sexto parámetro es 'secure'. Al poner $is_secure, la cookie solo viajará por HTTPS.
-                $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
-                setcookie('session_token', $token, time() + (86400 * $dias), '/', '', $is_secure, true);
-            }
-
-            header('Location: ../admin/admin.php');
-            exit;
-        } else {
-            sleep(2);  // Ralentiza ataques de fuerza bruta
-            header('Location: ../public/login.php?error=1');
-            exit;
-        }
+        header('Location: ../admin/admin.php');
+        exit;
     } else {
-        sleep(2);  // Ralentiza aunque el usuario no exista
+        // El sleep(2) ya ocurre dentro de la función login()
         header('Location: ../public/login.php?error=1');
         exit;
     }
-} else {
-    header('Location: ../public/login.php');
-    exit;
 }
+?>

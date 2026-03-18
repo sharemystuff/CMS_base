@@ -10,13 +10,19 @@ function e($string) {
 
 /**
  * CAPA DE ENTRADA: Limpieza de datos.
+ * @param bool $es_password Si es true, no escapa HTML para no romper el hash de la clave.
  */
-function limpiar_entrada($data) {
+function limpiar_entrada($data, $es_password = false) {
     if (is_array($data)) {
-        return array_map('limpiar_entrada', $data);
+        return array_map(function($item) use ($es_password) {
+            return limpiar_entrada($item, $es_password);
+        }, $data);
     }
     $data = trim($data);
     $data = str_replace(["\r", "\n"], '', $data);
+    
+    if ($es_password) return $data; // Seguridad Extrema: No tocar la clave pura
+    
     return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 
@@ -38,33 +44,29 @@ function login($email, $pass_plano) {
     global $conexion;
     if (!$conexion) return false;
 
-    // Ajustado: La columna es 'password'
-    $stmt = $conexion->prepare("SELECT id, nombre, nickname, password, rol, activo FROM usuarios WHERE email = ? LIMIT 1");
+    // Buscamos al usuario por email
+    $stmt = $conexion->prepare("SELECT id, nombre, password, rol, activo FROM usuarios WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $resultado = $stmt->get_result();
 
-    if ($user = $resultado->fetch_assoc()) {
-        // Verificamos si la cuenta está activa (1) y la clave coincide
-        if ($user['activo'] == 1 && password_verify($pass_plano, $user['password'])) {
-            
-            // Seguridad: Regenerar ID tras login exitoso
+    if ($u = $resultado->fetch_assoc()) {
+        if ($u['activo'] != 1) return false;
+
+        // VERIFICACIÓN CON BCRYPT (Soluciona la inconsistencia con encode_pass)
+        if (password_verify($pass_plano, $u['password'])) {
             session_regenerate_id(true);
-
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_nombre'] = $user['nombre'];
-            $_SESSION['user_nickname'] = $user['nickname'];
-            $_SESSION['user_rol'] = $user['rol'];
-
+            $_SESSION['user_id'] = $u['id'];
+            $_SESSION['user_nombre'] = $u['nombre'];
+            $_SESSION['user_rol'] = $u['rol'];
             return true;
         }
     }
+    
+    sleep(2); // Anti-Fuerza Bruta
     return false;
 }
 
-/**
- * Obtiene la IP real del cliente.
- */
 function get_client_ip() {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
     if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
@@ -83,7 +85,6 @@ function intentar_auto_login($conexion) {
         $token_recibido = $_COOKIE['session_token'];
         $token_hash = hash('sha256', $token_recibido);
 
-        // Ajustado a tus columnas: session_token, activo, etc.
         $stmt = $conexion->prepare("SELECT id, nombre, nickname, rol FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
         $stmt->bind_param("s", $token_hash);
         $stmt->execute();
@@ -93,7 +94,6 @@ function intentar_auto_login($conexion) {
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
-            $_SESSION['user_nickname'] = $user['nickname'];
             $_SESSION['user_rol'] = $user['rol'];
             return true;
         }
@@ -104,13 +104,14 @@ function intentar_auto_login($conexion) {
 /**
  * BLOQUEO DE ACCESO RESTRINGIDO
  */
-function restringir_acceso($roles_permitidos = ['admin', 'owner']) {
-    if (!checking()) {
-        header('Location: ../public/login.php');
+function restringir_acceso($roles_permitidos = []) {
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../public/login.php?error=sesion_expirada");
         exit;
     }
-    if (!in_array($_SESSION['user_rol'], $roles_permitidos)) {
-        header('Location: admin.php?error=no_permission');
+    if (!empty($roles_permitidos) && !in_array($_SESSION['user_rol'], $roles_permitidos)) {
+        header("Location: ../admin/admin.php?error=sin_permisos");
         exit;
     }
 }
+?>
