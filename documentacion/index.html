@@ -1,0 +1,1094 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS BASE | Codex Oficial</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7a006c;
+        --primary-light: #9a238a;
+        --bg-body: #f0f2f5;
+        --bg-sidebar: #ffffff;
+        --text-dark: #2d3436;
+        --text-muted: #636e72;
+        --border: #dcdde1;
+        --code-bg: #282c34;
+        --code-text: #abb2bf;
+        --accent: #00cec9;
+        --danger: #eb4d4b;
+        --success: #6ab04c;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Open Sans", sans-serif;
+        background: var(--bg-body);
+        color: var(--text-dark);
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* SIDEBAR */
+      aside {
+        width: 320px;
+        background: var(--bg-sidebar);
+        height: 100vh;
+        position: fixed;
+        border-right: 1px solid var(--border);
+        padding: 25px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .logo-box {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      .logo-box img {
+        width: 70px;
+        margin-bottom: 10px;
+        transition: 0.3s;
+      }
+      .logo-box img:hover {
+        transform: scale(1.1) rotate(-5deg);
+      }
+      .logo-box h2 {
+        font-size: 1.2rem;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .search-container {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding-bottom: 15px;
+      }
+      .search-box {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--f0f2f5);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: 0.3s;
+      }
+      .search-box:focus {
+        border-color: var(--primary-light);
+      }
+
+      nav .nav-section {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        border-bottom: 1px solid var(--f0f2f5);
+        padding-bottom: 5px;
+      }
+      nav ul {
+        list-style: none;
+        margin-top: 10px;
+      }
+      nav ul li a {
+        display: block;
+        padding: 10px 15px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-bottom: 2px;
+      }
+      nav ul li a:hover {
+        background: #f8f9fa;
+        color: var(--primary);
+      }
+      nav ul li a.active {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+      }
+
+      /* CONTENT AREA */
+      main {
+        margin-left: 320px;
+        flex: 1;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 60px 50px;
+        scroll-behavior: smooth;
+      }
+      .content-section {
+        display: none;
+      }
+      .content-section.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h1 {
+        font-size: 2.8rem;
+        color: var(--primary);
+        margin-bottom: 40px;
+        border-bottom: 4px solid var(--primary);
+        display: inline-block;
+        padding-bottom: 10px;
+      }
+      h2 {
+        font-size: 1.8rem;
+        margin: 50px 0 25px;
+        color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      h2::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* CODEX CARDS */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 25px;
+        position: relative;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-light);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .func-name {
+        font-family: "Fira Code", monospace;
+        font-size: 1.15rem;
+        color: var(--primary);
+        font-weight: 700;
+        word-break: break-all;
+      }
+      .file-label {
+        font-size: 0.65rem;
+        background: #f1f2f6;
+        color: #57606f;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: "Fira Code", monospace;
+        border: 1px solid #dcdde1;
+      }
+
+      .desc {
+        font-size: 0.95rem;
+        color: #4b4b4b;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        flex-grow: 1;
+      }
+
+      .specs {
+        font-size: 0.85rem;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 15px;
+        border-left: 4px solid var(--primary-light);
+      }
+      .specs div {
+        margin-bottom: 8px;
+      }
+      .specs b {
+        color: #2d3436;
+        min-width: 80px;
+        display: inline-block;
+      }
+
+      .return-val {
+        font-family: "Fira Code", monospace;
+        color: var(--success);
+        font-weight: 600;
+      }
+      .param-list {
+        color: var(--text-muted);
+      }
+
+      .tag {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 900;
+        margin-left: 5px;
+        color: white;
+      }
+      .tag-sec {
+        background: var(--danger);
+      }
+      .tag-db {
+        background: #3498db;
+      }
+      .tag-core {
+        background: #9b59b6;
+      }
+
+      footer {
+        margin-top: 80px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        padding: 30px;
+        border-top: 1px solid var(--border);
+      }
+
+      /* SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      .function-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      .func-item {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        transition: 0.3s;
+      }
+      .func-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .func-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        align-items: center;
+      }
+      .func-signature {
+        font-family: "Fira Code", monospace;
+        font-size: 1rem;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .func-file {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        background: #f1f2f6;
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+
+      .func-desc {
+        font-size: 0.9rem;
+        color: #444;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <div class="logo-box">
+        <img src="images/logo.svg" alt="CMS BASE" />
+        <h2>CMS BASE</h2>
+      </div>
+
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-box"
+          id="codexSearch"
+          placeholder="🔍 Buscar función..."
+          onkeyup="searchCodex()"
+        />
+      </div>
+
+      <nav>
+        <div class="nav-section">Núcleo & Sistema</div>
+        <ul>
+          <li>
+            <a onclick="show('sec-core')" id="btn-sec-core" class="active"
+              >Main & Ruteo</a
+            >
+          </li>
+          <li>
+            <a onclick="show('sec-seg')" id="btn-sec-seg">Seguridad (Escudo)</a>
+          </li>
+        </ul>
+        <div class="nav-section">Datos & Modelos</div>
+        <ul>
+          <li>
+            <a onclick="show('sec-users')" id="btn-sec-users"
+              >Usuarios & Auth</a
+            >
+          </li>
+          <li>
+            <a onclick="show('sec-posts')" id="btn-sec-posts"
+              >Posts & Metadatos</a
+            >
+          </li>
+          <li>
+            <a onclick="show('sec-opts')" id="btn-sec-opts"
+              >Opciones Globales</a
+            >
+          </li>
+        </ul>
+        <div class="nav-section">Herramientas</div>
+        <ul>
+          <li>
+            <a onclick="show('sec-utils')" id="btn-sec-utils"
+              >Utilidades de Pelín</a
+            >
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <a onclick="show('sec-referencia')" id="btn-sec-referencias"
+              >Referencias</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="sec-core" class="content-section active">
+        <h1>Núcleo del Sistema</h1>
+        <p>
+          Funciones fundamentales que rigen el comportamiento de la plataforma y
+          el entorno.
+        </p>
+        <div class="grid" id="grid-core">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">url_base()</span
+              ><span class="file-label">api/main.php</span>
+            </div>
+            <p class="desc">
+              Calcula dinámicamente la URL absoluta del sitio. Detecta
+              automáticamente si el servidor usa HTTPS (vía mkcert o producción)
+              y resuelve puertos no estándar.
+            </p>
+            <div class="specs">
+              <div><b>Params:</b> <span class="param-list">Ninguno</span></div>
+              <div>
+                <b>Retorna:</b>
+                <span class="return-val"
+                  >string (ej: https://www.adminbase.mahg)</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">asset()</span
+              ><span class="file-label">api/main.php</span>
+            </div>
+            <p class="desc">
+              Función vital para cargar CSS, JS e Imágenes. Concatena la URL
+              base con el path proporcionado y añade un timestamp opcional para
+              evitar el caché del navegador en desarrollo.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Params:</b> <span class="param-list">$path (string)</span>
+              </div>
+              <div>
+                <b>Retorna:</b>
+                <span class="return-val"
+                  >string (URL absoluta del recurso)</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">checking()</span
+              ><span class="file-label">api/main.php</span
+              ><span class="tag tag-sec">AUTH</span>
+            </div>
+            <p class="desc">
+              Verifica la existencia de una sesión válida. Comprueba que el ID
+              de usuario y el token de sesión coincidan con la base de datos.
+            </p>
+            <div class="specs">
+              <div><b>Retorna:</b> <span class="return-val">bool</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-seg" class="content-section">
+        <h1>Seguridad (El Escudo)</h1>
+        <p>Funciones encargadas de neutralizar ataques XSS, SQLi y CSRF.</p>
+        <div class="grid" id="grid-seg">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">limpiar_entrada()</span
+              ><span class="file-label">seguridad/funciones.php</span>
+            </div>
+            <p class="desc">
+              El primer filtro. Realiza trim(), stripslashes() y
+              htmlspecialchars() para desinfectar cualquier dato proveniente del
+              usuario.
+            </p>
+            <div class="specs">
+              <div><b>Params:</b> <span class="param-list">$data</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">e()</span
+              ><span class="file-label">seguridad/funciones.php</span>
+            </div>
+            <p class="desc">
+              Escapado de salida. Debe usarse en cada 'echo' dentro de etiquetas
+              HTML para prevenir Cross-Site Scripting.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b>
+                <span class="return-val">string (escapado)</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">validarCSRF()</span
+              ><span class="file-label">api/main.php</span
+              ><span class="tag tag-sec">CRÍTICO</span>
+            </div>
+            <p class="desc">
+              Verifica que el token enviado en formularios POST coincida con el
+              secreto de la sesión para evitar peticiones maliciosas externas.
+            </p>
+            <div class="specs">
+              <div><b>Retorna:</b> <span class="return-val">bool</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">email_valido()</span
+              ><span class="file-label">seguridad/funciones.php</span>
+            </div>
+            <p class="desc">
+              Usa filter_var con FILTER_VALIDATE_EMAIL tras limpiar caracteres
+              ilegales.
+            </p>
+            <div class="specs">
+              <div><b>Retorna:</b> <span class="return-val">bool</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-users" class="content-section">
+        <h1>Usuarios & Autenticación</h1>
+        <p>Lógica de manejo de cuentas, recuperación y contraseñas.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">crear_usuario()</span
+              ><span class="file-label">api/funciones_model.php</span
+              ><span class="tag tag-db">INSERT</span>
+            </div>
+            <p class="desc">
+              Registra un usuario. Aplica el hasheo de contraseña
+              automáticamente antes de insertar.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Params:</b>
+                <span class="param-list"
+                  >$nombre, $nick, $email, $pass, $rol</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">encode_pass()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Aplica PASSWORD_BCRYPT con un 'cost' optimizado para la seguridad
+              actual.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b>
+                <span class="return-val">string (hash 60 chars)</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">generar_token_recuperacion()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Genera un token hexadecimal y establece 'reset_expira' a +5
+              minutos en la DB.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b> <span class="return-val">string (token)</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">validar_token_recuperacion()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Comprueba si el token existe y si el tiempo actual no ha superado
+              el límite de 5 minutos.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b>
+                <span class="return-val">array (datos user) | false</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">get_user()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Obtiene toda la información de un usuario por su ID.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b> <span class="return-val">object/array</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">actualizar_ultimo_login()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Actualiza el timestamp 'ultimo_login' y la IP del usuario al
+              entrar al panel.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-posts" class="content-section">
+        <h1>Contenidos (Posts & Metas)</h1>
+        <p>El motor de contenido del CMS.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">get_post()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Recupera un post o página filtrando por ID o por URL (slug).
+              Soporta carga de metadatos adjuntos.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">crear_post()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Inserta contenido en la tabla 'posts'. Gestiona automáticamente la
+              creación del slug si no se proporciona.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">update_post_meta()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Guarda o actualiza un valor dinámico en la tabla 'post_meta'.
+              Fundamental para SEO y Custom Fields.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">get_post_meta()</span
+              ><span class="file-label">api/funciones_model.php</span>
+            </div>
+            <p class="desc">
+              Recupera un valor específico de metadato para un post concreto.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-opts" class="content-section">
+        <h1>Opciones Globales</h1>
+        <p>Configuración del sitio y constantes de base de datos.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">get_opcion()</span
+              ><span class="file-label">tovi/funciones.php</span>
+            </div>
+            <p class="desc">
+              Recupera un valor de la tabla 'opciones'. Es la función más usada
+              para configurar el nombre del sitio, SMTP, etc.
+            </p>
+            <div class="specs">
+              <div>
+                <b>Retorna:</b> <span class="return-val">string | null</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">update_opcion()</span
+              ><span class="file-label">tovi/funciones.php</span>
+            </div>
+            <p class="desc">
+              Actualiza una opción existente o la crea si no existía.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">get_all_opciones()</span
+              ><span class="file-label">tovi/funciones.php</span>
+            </div>
+            <p class="desc">
+              Carga todas las opciones en un único array asociativo para reducir
+              consultas SQL al servidor.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-utils" class="content-section">
+        <h1>Utilidades de Pelín</h1>
+        <p>Herramientas de desarrollo, debug y generación de datos.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">pre()</span
+              ><span class="file-label">tovi/funciones.php</span
+              ><span class="tag tag-core">DEBUG</span>
+            </div>
+            <p class="desc">
+              Envuelve un print_r entre etiquetas &lt;pre&gt; con estilos CSS
+              para facilitar la lectura de objetos y arrays complejos.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">random_pass()</span
+              ><span class="file-label">tovi/funciones.php</span>
+            </div>
+            <p class="desc">
+              Genera una cadena de texto aleatoria. Útil para contraseñas
+              temporales o sales.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">enviar_email()</span
+              ><span class="file-label">api/main.php</span>
+            </div>
+            <p class="desc">
+              Wrapper sobre PHPMailer. Configura automáticamente el servidor
+              SMTP usando los datos de 'get_opcion'.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="func-name">log_error()</span
+              ><span class="file-label">seguridad/funciones.php</span>
+            </div>
+            <p class="desc">
+              Escribe eventos críticos en el archivo php_errors.log sin mostrar
+              información sensible al usuario final.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-referencia" class="content-section">
+        <h1>Referencia Completa</h1>
+        <p class="subtitle">
+          Listado técnico integral de todas las funciones del sistema.
+        </p>
+
+        <div class="category-block">
+          <h2>1. Seguridad y Blindaje</h2>
+          <div class="function-list">
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">limpiar_entrada($data)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Limpia espacios, quita barras invertidas y convierte caracteres
+                especiales. El primer filtro de todo $_POST.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">e($string)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Escapa variables para salida HTML segura (prevención de ataques
+                XSS).
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">validarCSRF()</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Compara el token del formulario con el de la sesión para evitar
+                peticiones falsificadas.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">generarCSRF()</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Crea un token único de seguridad si no existe en la sesión
+                actual.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">email_valido($email)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Valida el formato legal y sanitiza correos electrónicos.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">log_error($mensaje)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Registra incidentes técnicos en php_errors.log incluyendo la IP
+                del usuario y marca de tiempo.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">bloquear_ip($ip)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Añade una dirección IP a la "lista negra" tras detectar intentos
+                de acceso fallidos reiterados.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">es_ip_bloqueada($ip)</span
+                ><span class="func-file">seguridad/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Verifica si el visitante actual tiene el acceso restringido por
+                seguridad.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-block">
+          <h2>2. Núcleo y Rutas</h2>
+          <div class="function-list">
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">url_base()</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Detecta dinámicamente el protocolo (HTTP/S) y la URL raíz del
+                servidor virtual.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">asset($path)</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Genera la ruta absoluta a archivos estáticos en el directorio
+                /assets.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">checking()</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Middleware de protección: verifica la sesión activa antes de
+                cargar páginas privadas.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">redirigir($url)</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Maneja salidas limpias y redirecciones HTTP seguras.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature"
+                  >enviar_email($to, $subject, $body)</span
+                ><span class="func-file">api/main.php</span>
+              </div>
+              <p class="func-desc">
+                Orquestador de envíos vía PHPMailer utilizando la configuración
+                SMTP de la DB.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-block">
+          <h2>3. Modelos de Datos</h2>
+          <div class="function-list">
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">crear_usuario(...)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Registro de nuevos perfiles en la base de datos.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">encode_pass($password)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Hashea contraseñas utilizando el algoritmo seguro BCRYPT.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature"
+                  >generar_token_recuperacion($email)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Crea una 'special_key' única con una validez estricta de 5
+                minutos.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature"
+                  >validar_token_recuperacion($token)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Verifica si un enlace de rescate sigue siendo válido y no ha
+                expirado.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature"
+                  >update_post_meta($id, $key, $val)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Guarda campos personalizados utilizando una arquitectura EAV.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">get_post($id_or_slug)</span
+                ><span class="func-file">api/funciones_model.php</span>
+              </div>
+              <p class="func-desc">
+                Motor de búsqueda de contenidos por ID o URL amigable.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-block">
+          <h2>4. Utilidades y Configuración</h2>
+          <div class="function-list">
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">get_opcion($key)</span
+                ><span class="func-file">tovi/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Lee valores específicos de configuración de la tabla 'opciones'.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">get_all_opciones()</span
+                ><span class="func-file">tovi/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Optimización: carga todo el sistema de configuración en un solo
+                array de memoria.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">pre($data)</span
+                ><span class="func-file">tovi/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Función de depuración para visualizar estructuras de datos
+                complejas.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">random_pass($length)</span
+                ><span class="func-file">tovi/funciones.php</span>
+              </div>
+              <p class="func-desc">
+                Generador criptográficamente seguro de strings aleatorios.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-block">
+          <h2>5. Instalación</h2>
+          <div class="function-list">
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">verificar_conexion_db()</span
+                ><span class="func-file">tovi/pacheco.php</span>
+              </div>
+              <p class="func-desc">
+                Comprueba la salud y validez de las credenciales de la base de
+                datos.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">ejecutar_migraciones()</span
+                ><span class="func-file">tovi/pacheco.php</span>
+              </div>
+              <p class="func-desc">
+                Crea la estructura de tablas inicial del sistema.
+              </p>
+            </div>
+            <div class="func-item">
+              <div class="func-header">
+                <span class="func-signature">crear_archivo_config($datos)</span
+                ><span class="func-file">tovi/pacheco.php</span>
+              </div>
+              <p class="func-desc">
+                Genera físicamente el archivo de configuración api/db.php.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        CMS BASE - Documentación de Pelín & Gemini 3 Flash. "Lo que nosotros
+        hacemos es cultura".
+      </footer>
+    </main>
+
+    <script>
+      function show(sectionId) {
+        document
+          .querySelectorAll(".content-section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll("nav a")
+          .forEach((a) => a.classList.remove("active"));
+
+        document.getElementById(sectionId).classList.add("active");
+        document.getElementById("btn-" + sectionId).classList.add("active");
+
+        document.querySelector("main").scrollTop = 0;
+      }
+
+      function searchCodex() {
+        let filter = document.getElementById("codexSearch").value.toLowerCase();
+        let cards = document.querySelectorAll(".card");
+
+        cards.forEach((card) => {
+          let text = card.innerText.toLowerCase();
+          card.style.display = text.includes(filter) ? "flex" : "none";
+        });
+      }
+    </script>
+  </body>
+</html>
