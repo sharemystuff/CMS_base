@@ -3,6 +3,7 @@
 
 /**
  * CMS BASE - FUNCIONES NÚCLEO (TOVI)
+ * Prioridad: Integridad Funcional y Seguridad
  */
 
 function url_base() {
@@ -25,7 +26,7 @@ function asset($ruta) {
     return url_base() . '/' . ltrim($ruta, '/') . '?v=' . $version;
 }
 
-// --- GESTIÓN DE BASE DE DATOS (Nombres en Español) ---
+// --- GESTIÓN DE BASE DE DATOS ---
 
 function guardar_opcion($clave, $valor) {
     global $conexion;
@@ -46,7 +47,7 @@ function leer_opcion($clave) {
     return null;
 }
 
-// --- GESTIÓN DE USUARIOS CORE ---
+// --- GESTIÓN DE USUARIOS ---
 
 function usuario_existe($email) {
     global $conexion;
@@ -75,6 +76,8 @@ function crear_usuario_temporal($nombre, $nickname, $email, $rol, $password) {
     if ($stmt->execute()) return $token;
     return false;
 }
+
+// --- EL INSTALADOR (PACHECO) ---
 
 function pacheco_instalar($datos_db) {
     $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
@@ -106,6 +109,14 @@ function pacheco_instalar($datos_db) {
       `session_token` varchar(255) DEFAULT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+    CREATE TABLE IF NOT EXISTS `login_intentos` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `ip` varchar(45) NOT NULL,
+      `email` varchar(100) NOT NULL,
+      `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ";
 
