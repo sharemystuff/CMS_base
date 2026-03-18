@@ -4,25 +4,25 @@
 # Usuario: Pelín (Developer & Project Lead, fanático de Les Luthiers)
 # Fecha de actualización: Marzo 2026
 # Misión: Mantener la coherencia técnica y evitar repetir errores pasados.
-# Descripción: El CMS BASE es un sitio web basado en PHP, HTML, CSS y JAVASCRIPT pensado para ser usado como la base de todos los proyectos de Pelín, ya sean grandes o pequeños. Es parecido a Wordpress pero muchísimo más sencillo y con menos código inútil. Sin embargo, es un sistema centrado en la extrema seguridad para los usuarios.
+# Descripción: El CMS BASE es un sitio web basado en PHP, HTML, CSS y JAVASCRIPT (incluye PHPMailer) pensado para ser usado como la base de todos los proyectos de Pelín, ya sean grandes o pequeños. Es parecido a Wordpress pero muchísimo más sencillo y con menos código inútil. Sin embargo, es un sistema centrado en la extrema seguridad para los usuarios.
 # Alcance: Como es un CMS base, se podrá aplicar a cualquier tipo de necesidad, ya sea una tienda online, una sitio personal, para una empresa, un negocio, etc. Cuenta con las opciones básicas para que funcione. Por eso no es necesario adornarlo con funcionalidades para la comodidad de un usuario normal. Es más parecido a un Framework personalizado para Pelín. Puedes sugerir approaches para lograr los objetivos de Pelín.
-# Contexto: Pelín es un desarrollador freelance especializado en HTML, CSS, JAVASCRIPT, PHP y rara vez NODEJS. Realiza proyectos a todo tipo de clientes. Generalmente los proyectos son sitios web o también otros servicios digitales como Restauración fotográfica, edición de audio y video, diseño gráfico.
+# Contexto: Pelín es un desarrollador freelance especializado en HTML, CSS, JAVASCRIPT, PHP y rara vez NODEJS. Realiza proyectos a todo tipo de clientes. Generalmente los proyectos son sitios web o también otros servicios digitales como restauración fotográfica, edición de audio y video, diseño gráfico.
 # Entorno de desarrollo: Servidor Virtual de XAMPP "https://www.cmsbase.mahg/"
 
 ============================================================
 1. DETALLES DE ENTORNO LOCAL DE DESARROLLO
 ============================================================
-- mi entorno de desarrollo funciona con XAMPP. 
-- Estoy corriendo CMS BASE en un servidor virtual al que accedo a traves de "https://www.cmsbase.mahg/"
+- El entorno de desarrollo de Pelín funciona con XAMPP. 
+- Pelín está corriendo CMS BASE en un servidor virtual al que accede a traves de "https://www.cmsbase.mahg/"
 - Corre bajo https gracias a mkcert, lo que nos permite implementar código PHP listo para producción, para entornos seguros basados en https.  
-- Dispongo además de otro servidor virtual "https://www.lab.mahg/" que uso como "laboratorio" de pruebas de diferentes cosas. Podemos usarlo para ejecutar desde allí scripts maliciosos de prueba que ataquen https://www.cmsbase.mahg/ y así encontrar vulnerabilidades que mejorar.
-Tener mis proyectos con https me ayuda a desarrollarlos sin problemas de http inseguro, no poder cargar ciertos servicios porque estan en https y yo en http solamente. 
-De modo que si necesitas hacer pruebas que requieran otro servidor, https://www.lab.mahg/ está disponible para que le pongamos scripts que llamen a https://www.cmsbase.mahg/ y probemos lo que se necesite
+- Dispone además de otro servidor virtual "https://www.lab.mahg/" que usa como "laboratorio" de pruebas de diferentes cosas. Podemos usarlo para ejecutar desde allí scripts maliciosos de prueba que ataquen https://www.cmsbase.mahg/ y así encontrar vulnerabilidades que mejorar.
+Tener sus proyectos con https le ayuda a desarrollarlos sin problemas de http inseguro. Evita problemas como no poder cargar ciertos servicios porque estan en https y el proyecto de Pelín en http solamente. 
+De modo que si necesito hacer pruebas que requieran otro servidor, https://www.lab.mahg/ está disponible para correr scripts que llamen a https://www.cmsbase.mahg/ y probar lo que se necesite
 
 ============================================================
 2. ESPECIFICACIONES DE DESARROLLO
 ============================================================
-- SEGURIDAD EXTREMA: el login del sitio debe estar ultra protegido contra todo tipo de amenazas. Debe manejar:
+- SEGURIDAD EXTREMA: todo el sitio, especilamente el login debe estar ultra protegido contra todo tipo de amenazas. Debe manejar:
     - SQL Injection (SQLi)
     - Cross-Site Scripting (XSS)
     - Session Hijacking
@@ -41,7 +41,7 @@ De modo que si necesitas hacer pruebas que requieran otro servidor, https://www.
     Períodicamente durante el proceso de desarrollo se pueden realizar tests para probar la seguridad, usando también https://www.lab.mahg/
 - REUTILIZACIÓN DE FUNCIONES: en vez de escribir código php para cada página del sitio, se harán funciones flexibles que permitan aprovechar al máximo el código escrito.
 - NUNCA ROMPER CÓDIGO EXITOSO: si algunas funciones, código o diseño ya funciona bien, no tocarlo al escribir código nuevo.
-- URLs LIMPIAS: aunque internamente php trabajará con hashes y variables, la url siempre será amigable. Ejemplo: "index.php?pagina=23" siempre debería mostrarse "/productos/".
+- URLs LIMPIAS: aunque internamente php trabajará con hashes y variables, la url siempre será amigable. Ejemplo: "index.php?pagina=23" siempre debería mostrarse "/productos/mi-producto-genial/".
 - WORDPRESS LIKE: Worpress divide su contenido en 2 tipos, cronológico y estático. Nuestro proyecto también dividirá el contenido de la misma manera:
     - Páginas (custom pages): contenido estático para información que "siempre está ahí" y no depende del tiempo. (Contacto, Quiénes somos, etc)
     - Items (custom posts): un tipo de contenidos cronologico organizado por categorias, etiquetas, fechas
