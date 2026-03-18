@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = limpiar_entrada($_POST['email']); // Cambiado a email
         $pass = $_POST['pass'];
 
-        if (login($email, $pass)) {
+        if (iniciar_sesion($email, $pass)) {
             header("Location: ../admin/admin.php");
             exit;
         } else {
