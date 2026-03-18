@@ -1,77 +1,37 @@
 /* admin/css/backend.css */
-
-/* 1. RESET PARA EL BACKEND */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-    background: var(--oscuro); 
-    color: #fff; 
-    line-height: 1.6;
-}
-
-/* 2. VARIABLES DE MARCA (SIEMPRE LAS NUESTRAS) */
 :root {
+    /* MODO DÍA (Default & Instalación) */
+    --bg: #f8f9fa;
+    --panel: #ffffff;
+    --texto: #2d3436;
+    --texto-suave: #636e72;
+    --borde: #dfe6e9;
     --primario: #7A006C;
     --secundario: #FF00E4;
-    --oscuro: #121212;
-    --tarjeta: #1e1e1e;
-    --borde: rgba(255,255,255,0.1);
-    --texto-suave: #b0b0b0;
+    --input-bg: #ffffff;
 }
 
-/* 3. UTILIDADES DE DISEÑO */
-.flex-center { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.txt-centro { text-align: center; }
-.animated { animation: fadeIn 0.5s ease both; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* 4. COMPONENTES DEL PANEL */
-.form-card {
-    background: var(--tarjeta);
-    padding: 40px;
-    border-radius: 15px;
-    border: 1px solid var(--borde);
-    width: 100%;
-    max-width: 700px;
+body.modo-noche {
+    --bg: #121212;
+    --panel: #1e1e1e;
+    --texto: #f5f6fa;
+    --texto-suave: #a4b0be;
+    --borde: #2f3542;
+    --input-bg: #2d3436;
 }
 
-h1, h2, h3 { color: var(--primario); margin-bottom: 20px; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--texto); line-height: 1.6; }
 
-label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--texto-suave); }
+/* Layout Admin */
+.admin-layout { display: grid; grid-template-areas: "aside header" "aside main" "aside footer"; grid-template-columns: 260px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh; }
+header { grid-area: header; background: var(--panel); border-bottom: 1px solid var(--borde); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+aside { grid-area: aside; background: #000; color: #fff; padding: 30px 20px; }
+main { grid-area: main; padding: 40px; }
+footer { grid-area: footer; padding: 20px; text-align: center; font-size: 0.8rem; color: var(--texto-suave); }
 
-.campo {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    background: #252525;
-    border: 1px solid var(--borde);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 1rem;
-}
-
-.campo:focus { border-color: var(--primario); outline: none; }
-
-.boton-principal {
-    width: 100%;
-    padding: 15px;
-    background: var(--primario);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.boton-principal:hover {
-    background: var(--secundario);
-    color: #000;
-}
-
-.alerta {
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.alerta-exito { background: rgba(0, 255, 100, 0.1); color: #00ff64; border: 1px solid #00ff64; }
+/* Formularios */
+.form-card { background: var(--panel); padding: 30px; border-radius: 12px; border: 1px solid var(--borde); max-width: 600px; }
+.campo { width: 100%; padding: 12px; margin: 8px 0 20px; background: var(--input-bg); border: 1px solid var(--borde); border-radius: 6px; color: var(--texto); }
+.boton-p { background: var(--primario); color: #fff; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+.boton-p:hover { background: var(--secundario); color: #000; }

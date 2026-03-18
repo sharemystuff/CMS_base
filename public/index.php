@@ -2,7 +2,6 @@
 /* public/index.php */
 include_once __DIR__ . '/../api/main.php';
 
-// Si no hay configuración, mandamos a Pacheco
 if (!file_exists(__DIR__ . '/../api/config.php')) {
     header("Location: ../tovi/pacheco.php");
     exit;
@@ -12,50 +11,49 @@ if (!file_exists(__DIR__ . '/../api/config.php')) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $OPC['titulo_sitio'] ?? 'CMS BASE'; ?></title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
 <body>
 
-<nav>
-    <div style="display:flex; align-items:center; gap:12px; font-weight:800; font-size:1.2rem;">
-        <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="35" alt="Logo">
-        CMS BASE
-    </div>
-    <div style="margin-left: auto;">
-        <?php if(sesion_activa()): ?> <a href="../admin/admin.php" class="boton-accion" style="padding:10px 20px; margin:0;">MI PANEL</a>
+<header class="hero-front">
+    <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="80" style="margin-bottom:30px;">
+    <h1>CMS BASE v3</h1>
+    <p>La potencia del código puro. Sin dependencias. Sin límites.</p>
+    
+    <div style="margin-top:40px; display:flex; gap:20px;">
+        <?php if(sesion_activa()): ?>
+            <a href="../admin/admin.php" class="f-boton" style="text-decoration:none; padding:15px 40px;">ENTRAR AL PANEL</a>
         <?php else: ?>
-            <a href="login.php" style="text-decoration:none; color:#333; margin-right:20px;">Ingresar</a>
-            <a href="registro.php" class="boton-accion" style="padding:10px 20px; margin:0;">REGISTRARME</a>
+            <a href="login.php" style="color:#fff; text-decoration:none; font-weight:700; padding:15px;">Login</a>
+            <a href="registro.php" class="f-boton" style="text-decoration:none; padding:15px 40px;">EMPEZAR AHORA</a>
         <?php endif; ?>
     </div>
-</nav>
+</header>
 
-<div class="hero">
-    <h1>Bienvenido a tu nueva experiencia Web</h1>
-    <p>Gestiona tu contenido con la potencia de CMS BASE.</p>
-    <a href="#mas" class="boton-accion">Descubrir más</a>
-</div>
+<section style="padding:100px 20px; text-align:center; background:#fff;">
+    <h2 style="font-size:2.5rem; margin-bottom:50px; color:#7A006C;">¿Por qué CMS BASE?</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:40px; max-width:1200px; margin:auto;">
+        <div>
+            <span style="font-size:3rem;">⚡</span>
+            <h3>Velocidad Real</h3>
+            <p>PHP puro y CSS nativo. Cargas instantáneas.</p>
+        </div>
+        <div>
+            <span style="font-size:3rem;">🛡️</span>
+            <h3>Seguridad Nativa</h3>
+            <p>Protección CSRF y saneamiento de datos integrado.</p>
+        </div>
+        <div>
+            <span style="font-size:3rem;">💎</span>
+            <h3>Modo Noche</h3>
+            <p>Backend adaptativo para desarrolladores nocturnos.</p>
+        </div>
+    </div>
+</section>
 
-<div class="features" id="mas">
-    <div class="caja-feature">
-        <h3>🚀 Rendimiento</h3>
-        <p>Arquitectura limpia en PHP puro para una carga ultra rápida.</p>
-    </div>
-    <div class="caja-feature">
-        <h3>🛠️ Modular</h3>
-        <p>Tu CMS, tus reglas. Sin librerías pesadas ni dependencias externas.</p>
-    </div>
-    <div class="caja-feature">
-        <h3>✨ Seguridad</h3>
-        <p>Protección nativa contra CSRF y ataques comunes.</p>
-    </div>
-</div>
-
-<footer style="text-align:center; padding:40px; color:#999; font-size:0.8rem;">
-    CMS BASE - Desarrollado por Pelín y Gemini
+<footer style="padding:50px; text-align:center; opacity:0.5; font-size:0.9rem;">
+    CMS BASE &copy; <?php echo date('Y'); ?> - Desarrollado por Pelín & Gemini
 </footer>
 
 </body>

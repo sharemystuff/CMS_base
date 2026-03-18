@@ -8,21 +8,19 @@ if (sesion_activa()) {
 }
 
 $error = "";
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // La función ya debe estar disponible gracias al require_once en main.php
     if (validarCSRF($_POST['csrf_token'] ?? '')) {
-        $email = limpiar_entrada($_POST['email']); // Cambiado a email
+        $email = limpiar_entrada($_POST['email']);
         $pass = $_POST['pass'];
 
         if (iniciar_sesion($email, $pass)) {
             header("Location: ../admin/admin.php");
             exit;
         } else {
-            $error = "Credenciales incorrectas.";
+            $error = "Correo o contraseña no válidos.";
         }
     } else {
-        $error = "Error de seguridad (CSRF). Recarga la página.";
+        $error = "Fallo de seguridad (CSRF).";
     }
 }
 ?>
@@ -30,42 +28,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - CMS BASE</title>
-    <link rel="icon" type="image/x-icon" href="<?php echo asset('assets/images/iconos/favicon.ico'); ?>">
     <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
-<body style="display:flex; align-items:center; min-height:100vh;">
+<body class="contenedor-auth">
 
-    <div class="caja">
-        <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
-            <h1>Iniciar Sesión</h1>
-            <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">Introduce tu correo electrónico</p>
+    <div class="auth-card animated fadeIn">
+        <div style="text-align:center; margin-bottom:30px;">
+            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="50">
         </div>
+        
+        <h2>¡Hola de nuevo!</h2>
+        <p style="text-align:center; color:#666; margin-bottom:30px;">Ingresa tus datos para continuar.</p>
 
         <?php if ($error): ?>
-            <div class="alerta alerta-error"><?php echo $error; ?></div>
+            <div class="f-alerta f-error"><?php echo $error; ?></div>
         <?php endif; ?>
 
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-            <label>Correo Electrónico</label>
-            <input type="email" name="email" class="campo" placeholder="tu@email.com" required autofocus>
+            <label style="font-weight:700; font-size:0.8rem; color:#888;">CORREO ELECTRÓNICO</label>
+            <input type="email" name="email" class="f-campo" placeholder="ejemplo@correo.com" required autofocus>
 
-            <label>Contraseña</label>
-            <input type="password" name="pass" class="campo" placeholder="••••••••" required>
+            <label style="font-weight:700; font-size:0.8rem; color:#888;">CONTRASEÑA</label>
+            <input type="password" name="pass" class="f-campo" placeholder="••••••••" required>
 
-            <button type="submit" class="boton">ENTRAR AL SISTEMA</button>
+            <button type="submit" class="f-boton">ENTRAR AL SISTEMA</button>
         </form>
 
-        <div class="txt-centro" style="margin-top: 25px;">
-            <a href="recuperar.php" class="enlace" style="font-size: 0.85rem;">¿Olvidaste tu contraseña?</a>
-            <hr style="border: 0; border-top: 1px solid var(--ui); margin: 20px 0;">
-            <p style="font-size: 0.85rem; color: #666;">
-                ¿No tienes cuenta? <a href="registro.php" class="enlace">Regístrate</a>
-            </p>
+        <div style="margin-top:30px; text-align:center; font-size:0.9rem;">
+            ¿No tienes cuenta? <a href="registro.php" style="color:#7A006C; font-weight:700; text-decoration:none;">Regístrate aquí</a>
         </div>
     </div>
 

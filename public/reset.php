@@ -2,11 +2,6 @@
 /* public/reset.php */
 include_once __DIR__ . '/../api/main.php';
 
-if (sesion_activa()) {
-    header("Location: ../admin/admin.php");
-    exit;
-}
-
 $mensaje = "";
 $tipo_alerta = "";
 $token_valido = false;
@@ -15,16 +10,16 @@ $user_data = null;
 $token_url = limpiar_entrada($_GET['token'] ?? '');
 
 if ($token_url) {
-    $user_data = validar_token_recuperacion($token_url);
-    if ($user_data) {
-        $token_valido = true;
-    } else {
-        $mensaje = "El enlace es inválido o ha expirado (recuerda que solo dura 5 min).";
-        $tipo_alerta = "error";
+    // Restauramos tu función de validación (debe estar en el modelo)
+    if (function_exists('validar_token_recuperacion')) {
+        $user_data = validar_token_recuperacion($token_url);
+        if ($user_data) $token_valido = true;
     }
-} else {
-    header("Location: login.php");
-    exit;
+}
+
+if (!$token_valido) {
+    $mensaje = "El enlace es inválido o ha expirado.";
+    $tipo_alerta = "error";
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
@@ -39,12 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
             $mensaje = "Las contraseñas no coinciden.";
             $tipo_alerta = "error";
         } else {
-            if (actualizar_password_recuperada($token_url, $pass1)) {
-                header("Location: login.php?msg=reset_success");
-                exit;
-            } else {
-                $mensaje = "Error al actualizar.";
-                $tipo_alerta = "error";
+            // Llamamos a tu función de actualización
+            if (cambiar_password_por_token($token_url, $pass1)) {
+                $mensaje = "Clave actualizada. Ya puedes iniciar sesión.";
+                $tipo_alerta = "exito";
+                $token_valido = false; // Ocultar formulario
             }
         }
     }
@@ -55,32 +49,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
 <head>
     <meta charset="UTF-8">
     <title>Nueva Contraseña - CMS BASE</title>
-    <link rel="icon" type="image/x-icon" href="<?php echo asset('assets/images/iconos/favicon.ico'); ?>">
     <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
 </head>
-<body class="flex-center">
-    <div class="caja login-box">
-        <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo">
-            <h1>Nueva Contraseña</h1>
-            <p class="txt-muted">Estás actualizando la cuenta:<br><strong><?php echo e($user_data['email'] ?? ''); ?></strong></p>
-        </div>
+<body class="contenedor-auth">
+    <div class="auth-card animated fadeIn">
+        <h2>Nueva Contraseña</h2>
         <?php if ($mensaje): ?>
-            <div class="alerta alerta-<?php echo $tipo_alerta; ?>"><?php echo $mensaje; ?></div>
+            <div class="f-alerta f-<?php echo $tipo_alerta; ?>"><?php echo $mensaje; ?></div>
         <?php endif; ?>
+
         <?php if ($token_valido): ?>
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-            <div class="grupo-campo">
-                <label>Nueva Contraseña</label>
-                <input type="password" name="pass1" class="campo" required placeholder="Escribe tu nueva clave">
-            </div>
-            <div class="grupo-campo">
-                <label>Confirmar Nueva Contraseña</label>
-                <input type="password" name="pass2" class="campo" required placeholder="Repítela aquí">
-            </div>
-            <button type="submit" class="boton btn-block mt-20">ACTUALIZAR Y ENTRAR</button>
+            <label style="font-weight:700; font-size:0.8rem; color:#888;">NUEVA CONTRASEÑA</label>
+            <input type="password" name="pass1" class="f-campo" required>
+            <label style="font-weight:700; font-size:0.8rem; color:#888;">REPETIR CONTRASEÑA</label>
+            <input type="password" name="pass2" class="f-campo" required>
+            <button type="submit" class="f-boton">ACTUALIZAR CLAVE</button>
         </form>
+        <?php else: ?>
+            <div style="text-align:center; margin-top:20px;">
+                <a href="login.php" class="f-boton" style="text-decoration:none; display:inline-block;">IR AL LOGIN</a>
+            </div>
         <?php endif; ?>
     </div>
 </body>

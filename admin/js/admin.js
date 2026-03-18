@@ -1,29 +1,16 @@
-// abrir submenu cerrando otros abiertos
+/* admin/js/admin.js */
+$(document).ready(function() {
+    // Switcher de Modo Noche
+    $('#btnModo').on('click', function() {
+        $('body').toggleClass('modo-noche');
+        const activo = $('body').hasClass('modo-noche') ? '1' : '0';
+        document.cookie = "modo_oscuro=" + activo + "; path=/; max-age=" + (60*60*24*30);
+    });
 
-$(document).on('click', '.expand li .menu-item', function () {
-    if ($(this).parent().hasClass("open")) {
-        $(this).parent().removeClass('open')
-        $(this).next('.submenu').slideUp(200)
-    } else {
-        $('.submenu').slideUp(200)
-        $('#menu *').removeClass('open')
-        $(this).parent().addClass('open')
-        $(this).next('.submenu').slideDown(200)
-    }
-})
-
-// Minimizar menú ASIDE
-$('#pack').click(function () {
-    $('.submenu').attr('style', '')
-    if ($('#contenido').hasClass('expand') === true) {
-        $('header, #contenido').removeClass('expand').addClass('contra')
-        $('#menu li').removeClass('open')
-        $('.submenu').slideUp(200)
-        $('.movil').hide()
-    } else {
-        $('header, #contenido').removeClass('contra').addClass('expand')
-        $('#menu li.activo').addClass('open')
-        $('#menu li.sub.activo .submenu').slideDown(200)
-        $('.movil').show()
-    }
-})
+    // Animación simple de menú
+    $('.menu-item').hover(function() {
+        $(this).find('i').addClass('animated pulse');
+    }, function() {
+        $(this).find('i').removeClass('animated pulse');
+    });
+});
