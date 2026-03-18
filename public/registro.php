@@ -6,7 +6,7 @@ if (leer_opcion('registro') !== '1') {
     die("<div style='font-family:sans-serif; text-align:center; padding:50px;'><h1>Registro Cerrado</h1></div>");
 }
 
-if (checking()) {
+if (sesion_activa()) {
     header("Location: ../admin/admin.php");
     exit;
 }

@@ -2,7 +2,7 @@
 /* admin/admin.php */
 include_once __DIR__ . '/../api/main.php';
 
-if (!checking()) {
+if (!sesion_activa()) {
     header("Location: " . url_base() . "/public/login.php");
     exit; 
 }

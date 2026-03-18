@@ -2,7 +2,7 @@
 /* public/recuperar.php */
 include_once __DIR__ . '/../api/main.php';
 
-if (checking()) {
+if (sesion_activa()) {
     header("Location: ../admin/admin.php");
     exit;
 }
