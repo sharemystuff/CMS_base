@@ -12,12 +12,12 @@ if (!file_exists(__DIR__ . '/../api/config.php')) {
 <head>
     <meta charset="UTF-8">
     <title><?php echo $OPC['titulo_sitio'] ?? 'CMS BASE'; ?></title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('assets/css/estilos.css'); ?>">
 </head>
 <body>
 
 <header class="hero-front">
-    <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="80" style="margin-bottom:30px;">
+    <img src="<?php echo recurso('assets/images/iconos/logo.svg'); ?>" width="80" style="margin-bottom:30px;">
     <h1>CMS BASE v3</h1>
     <p>La potencia del código puro. Sin dependencias. Sin límites.</p>
     

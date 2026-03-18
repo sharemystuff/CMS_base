@@ -23,7 +23,7 @@ if ($token) {
 <head>
     <meta charset="UTF-8">
     <title>Confirmación - CMS BASE</title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('assets/css/estilos.css'); ?>">
 </head>
 <body class="contenedor-auth">
     <div class="auth-card animated fadeIn txt-centro">

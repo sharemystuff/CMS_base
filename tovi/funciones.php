@@ -20,10 +20,11 @@ function url_base() {
     return rtrim($url, '/');
 }
 
-function asset($ruta) {
-    $full_path = __DIR__ . '/../' . ltrim($ruta, '/');
+function recurso($ruta) {
+    $clean_ruta = ltrim($ruta, '/');
+    $full_path = __DIR__ . '/../' . $clean_ruta;
     $version = file_exists($full_path) ? filemtime($full_path) : '1.0';
-    return url_base() . '/' . ltrim($ruta, '/') . '?v=' . $version;
+    return url_base() . '/' . $clean_ruta . '?v=' . $version;
 }
 
 // --- GESTIÓN DE BASE DE DATOS ---

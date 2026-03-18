@@ -36,12 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Recuperar Acceso - CMS BASE</title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('assets/css/estilos.css'); ?>">
 </head>
 <body class="contenedor-auth">
     <div class="auth-card animated fadeIn">
         <div style="text-align:center; margin-bottom:20px;">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="50">
+            <img src="<?php echo recurso('assets/images/iconos/logo.svg'); ?>" width="50">
         </div>
         <h2>Recuperar Acceso</h2>
         <p style="text-align:center; color:#666; margin-bottom:30px;">Te enviaremos un enlace para restablecer tu clave.</p>

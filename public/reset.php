@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
 <head>
     <meta charset="UTF-8">
     <title>Nueva Contraseña - CMS BASE</title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('assets/css/estilos.css'); ?>">
 </head>
 <body class="contenedor-auth">
     <div class="auth-card animated fadeIn">

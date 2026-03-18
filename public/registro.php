@@ -16,12 +16,12 @@ if (sesion_activa()) {
 <head>
     <meta charset="UTF-8">
     <title>Crear Cuenta - CMS BASE</title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('assets/css/estilos.css'); ?>">
 </head>
 <body class="contenedor-auth">
     <div class="auth-card animated fadeIn">
         <div style="text-align:center; margin-bottom:20px;">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="50" alt="Logo">
+            <img src="<?php echo recurso('assets/images/iconos/logo.svg'); ?>" width="50" alt="Logo">
         </div>
         <h2>Únete a nosotros</h2>
         <p style="text-align:center; color:#666; margin-bottom:30px;">Crea tu cuenta en un paso.</p>
