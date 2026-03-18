@@ -7,14 +7,24 @@
 
 function url_base() {
     global $OPC;
-    if (!empty($OPC['url_sitio'])) return rtrim($OPC['url_sitio'], '/');
     
+    // Si la URL está definida en la base de datos, la usamos limpiando la barra final
+    if (!empty($OPC['url_sitio'])) {
+        return rtrim($OPC['url_sitio'], '/');
+    }
+    
+    // Detectamos el protocolo y host
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
+    
+    // Detectamos el subdirectorio (si existe)
     $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
     $dir = str_replace('/tovi', '', dirname($script));
     $dir = str_replace('/public', '', $dir);
-    return $protocol . "://" . $host . rtrim($dir, '/');
+    
+    // Construimos la URL y aplicamos rtrim para que NUNCA termine en /
+    $url = $protocol . "://" . $host . $dir;
+    return rtrim($url, '/');
 }
 
 function asset($ruta) {

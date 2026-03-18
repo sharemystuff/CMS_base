@@ -35,49 +35,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
         'pass' => $_POST['db_pass'], 
         'name' => $_POST['db_name']
     ];
-    
-    $url_sitio = rtrim($_POST['sitio_url'], '/'); 
-    $resultado_conn = pacheco_instalar($datos_db);
 
-    if ($resultado_conn) {
-        $conexion = $resultado_conn;
-        $master_salt = bin2hex(random_bytes(32));
-
-        create_opcion('salt_key', $master_salt);
-        create_opcion('url_sitio', $url_sitio); 
-        create_opcion('recuerdame', '30'); 
-        create_opcion('registro', '0'); 
-        create_opcion('mailer_host', '');
-        create_opcion('mailer_username', '');
-        create_opcion('mailer_password', '');
-        create_opcion('mailer_port', '465');
-
-        $contenido_config = "<?php\n";
-        $contenido_config .= "// Configuración de CMS BASE generada por Pacheco\n";
-        $contenido_config .= "\$DB_DATOS = [\n";
-        $contenido_config .= "    'host' => '{$datos_db['host']}',\n";
-        $contenido_config .= "    'user' => '{$datos_db['user']}',\n";
-        $contenido_config .= "    'pass' => '{$datos_db['pass']}',\n";
-        $contenido_config .= "    'name' => '{$datos_db['name']}'\n";
-        $contenido_config .= "];\n";
+    if (pacheco_instalar($datos_db)) {
+        // Recargamos la conexión tras crear la DB y tablas
+        $conexion = new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass'], $datos_db['name']);
         
-        file_put_contents(__DIR__ . '/../api/config.php', $contenido_config);
+        // Guardamos configuraciones iniciales usando set_opcion (Función correcta)
+        set_opcion('url_sitio', $_POST['url_sitio']);
+        set_opcion('estado', 'instalando');
         
-        header("Location: pacheco.php");
+        header("Refresh:0");
         exit;
-    } else { $error = "❌ Error de conexión a la base de datos."; }
+    } else {
+        $error = "Error: No se pudo conectar o crear la base de datos. Revisa los permisos.";
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
-    if (isset($conexion)) {
-        $nombre = limpiar_entrada($_POST['admin_nombre']);
-        $email = limpiar_entrada($_POST['admin_email']);
-        $pass = $_POST['admin_pass'];
+    $nombre = $_POST['admin_nombre'];
+    $email  = $_POST['admin_email'];
+    $pass   = $_POST['admin_pass'];
 
-        if (create_user_admin($nombre, 'admin', $email, 'admin', $pass)) {
-            update_opcion('estado', 'live');
-            $fase = 3;
-        } else { $error = "❌ Error al crear la cuenta de administrador."; }
+    if (create_user_admin($nombre, 'admin', $email, 'admin', $pass)) {
+        set_opcion('estado', 'live');
+        $fase = 3;
+    } else {
+        $error = "Error al crear el usuario administrador.";
     }
 }
 ?>
@@ -85,45 +68,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="<?php echo asset('assets/images/iconos/favicon.ico'); ?>">
-    <title>CMS BASE - Instalación</title>
-    <link rel="stylesheet" href="<?php echo asset('assets/css/estilos.css'); ?>">
+    <title>Pacheco - Instalador CMS BASE</title>
+    <link rel="stylesheet" href="../assets/css/estilos.css">
+    <style>
+        body { background: var(--oscuro); color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .inst-card { background: #fff; color: #333; padding: 40px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .logo-inst { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 1.5rem; color: var(--primario); margin-bottom: 20px; text-align: center; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .campo { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .boton { width: 100%; padding: 15px; background: var(--primario); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .boton:hover { background: var(--secundario); color: var(--oscuro); }
+        .alerta { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+        .alerta-error { background: #fee; color: #c00; border: 1px solid #fcc; }
+        .alerta-ok { background: #efe; color: #060; border: 1px solid #cfc; }
+        .txt-centro { text-align: center; }
+    </style>
 </head>
-<body style="display:flex; align-items:center; min-height:100vh;">
-    <div class="caja">
-        <div class="txt-centro">
-            <img src="<?php echo asset('assets/images/iconos/logo.svg'); ?>" width="60" alt="Logo" style="margin-bottom:10px;">
+<body>
+
+    <div class="inst-card animated fadeIn">
+        <div class="logo-inst">
+            <img src="../assets/images/iconos/logo.svg" width="60" alt="Logo">
         </div>
-        <h1>CMS BASE</h1>
-        
-        <?php if ($fase == 1): ?>
-            <p class="txt-centro" style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Fase 1: Configuración del Núcleo</p>
+
+        <?php if($fase == 1): ?>
+            <h1>Configuración de DB</h1>
             <form method="POST">
-                <label>URL del Sitio</label>
-                <input type="text" name="sitio_url" class="campo" value="<?php echo $url_sugerida; ?>" required>
-                
-                <label>Host DB</label>
-                <input type="text" name="db_host" class="campo" value="localhost">
+                <label>Host de la DB</label>
+                <input type="text" name="db_host" class="campo" value="localhost" required>
                 
                 <label>Usuario DB</label>
-                <input type="text" name="db_user" class="campo" placeholder="ej: root" required>
+                <input type="text" name="db_user" class="campo" value="root" required>
                 
                 <label>Password DB</label>
-                <input type="password" name="db_pass" class="campo">
+                <input type="password" name="db_pass" class="campo" placeholder="Contraseña">
                 
-                <label>Nombre DB</label>
-                <input type="text" name="db_name" class="campo" placeholder="Nombre de la base de datos" required>
+                <label>Nombre de la DB</label>
+                <input type="text" name="db_name" class="campo" placeholder="cms_base" required>
+
+                <label>URL del Sitio</label>
+                <input type="text" name="url_sitio" class="campo" value="<?php echo $url_sugerida; ?>" required>
                 
                 <?php if($error): ?><div class="alerta alerta-error"><?php echo $error; ?></div><?php endif; ?>
                 
-                <button type="submit" name="instalar_db" class="boton">CONFIGURAR NÚCLEO</button>
+                <button type="submit" name="instalar_db" class="boton">CONECTAR E INSTALAR</button>
             </form>
 
-        <?php elseif ($fase == 2): ?>
-            <p class="txt-centro" style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">Fase 2: Cuenta Maestra</p>
+        <?php elseif($fase == 2): ?>
+            <h1>Cuenta de Administrador</h1>
             <form method="POST">
-                <div class="alerta alerta-exito" style="text-align:center;">Base de datos lista. Crea el Administrador.</div>
+                <div class="alerta alerta-ok">Base de datos lista. Crea el Administrador.</div>
                 
                 <label>Nombre Completo</label>
                 <input type="text" name="admin_nombre" class="campo" placeholder="Tu nombre" required>
@@ -147,9 +142,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
             </div>
         <?php endif; ?>
         
-        <p class="txt-centro" style="margin-top:20px; font-size: 0.7rem; color: #ccc; letter-spacing: 1px;">
-            PACHECO INSTALLER v3.0
-        </p>
+        <p class="txt-centro" style="margin-top:20px; font-size: 0.8rem; color: #999;">CMS BASE - Instalador Pacheco</p>
     </div>
+
 </body>
 </html>
