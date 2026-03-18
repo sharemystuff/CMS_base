@@ -1,0 +1,77 @@
+/* admin/css/backend.css */
+
+/* 1. RESET PARA EL BACKEND */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    background: var(--oscuro); 
+    color: #fff; 
+    line-height: 1.6;
+}
+
+/* 2. VARIABLES DE MARCA (SIEMPRE LAS NUESTRAS) */
+:root {
+    --primario: #7A006C;
+    --secundario: #FF00E4;
+    --oscuro: #121212;
+    --tarjeta: #1e1e1e;
+    --borde: rgba(255,255,255,0.1);
+    --texto-suave: #b0b0b0;
+}
+
+/* 3. UTILIDADES DE DISEÑO */
+.flex-center { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.txt-centro { text-align: center; }
+.animated { animation: fadeIn 0.5s ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 4. COMPONENTES DEL PANEL */
+.form-card {
+    background: var(--tarjeta);
+    padding: 40px;
+    border-radius: 15px;
+    border: 1px solid var(--borde);
+    width: 100%;
+    max-width: 700px;
+}
+
+h1, h2, h3 { color: var(--primario); margin-bottom: 20px; }
+
+label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--texto-suave); }
+
+.campo {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background: #252525;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.campo:focus { border-color: var(--primario); outline: none; }
+
+.boton-principal {
+    width: 100%;
+    padding: 15px;
+    background: var(--primario);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.boton-principal:hover {
+    background: var(--secundario);
+    color: #000;
+}
+
+.alerta {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.alerta-exito { background: rgba(0, 255, 100, 0.1); color: #00ff64; border: 1px solid #00ff64; }

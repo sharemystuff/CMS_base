@@ -2,26 +2,20 @@
 /* admin/opciones.php */
 include_once __DIR__ . '/../api/main.php';
 
-// Bloqueo elegante: solo admin y owner entran aquí
 restringir_acceso(['admin', 'owner']);
 
 $mensaje = "";
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
-    if (isset($_POST['csrf_token']) && validarCSRF($_POST['csrf_token'])) {
-        
-        update_opcion('recuerdame', limpiar_entrada($_POST['recuerdame']));
-        update_opcion('registro', isset($_POST['registro']) ? '1' : '0');
-        update_opcion('mailer_host', limpiar_entrada($_POST['mailer_host']));
-        update_opcion('mailer_username', limpiar_entrada($_POST['mailer_username']));
-        update_opcion('mailer_password', $_POST['mailer_password']); 
-        update_opcion('mailer_port', limpiar_entrada($_POST['mailer_port']));
+    if (validarCSRF($_POST['csrf_token'] ?? '')) {
+        guardar_opcion('recuerdame', limpiar_entrada($_POST['recuerdame']));
+        guardar_opcion('registro', isset($_POST['registro']) ? '1' : '0');
+        guardar_opcion('mailer_host', limpiar_entrada($_POST['mailer_host']));
+        guardar_opcion('mailer_username', limpiar_entrada($_POST['mailer_username']));
+        guardar_opcion('mailer_password', $_POST['mailer_password']); 
+        guardar_opcion('mailer_port', limpiar_entrada($_POST['mailer_port']));
         
         $OPC = get_all_opciones();
-        $mensaje = "✅ Opciones actualizadas correctamente.";
-        
-    } else {
-        $mensaje = "❌ Error de validación de seguridad (CSRF).";
+        $mensaje = "✅ Configuración guardada en el núcleo.";
     }
 }
 ?>
@@ -30,59 +24,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
 <head>
     <meta charset="UTF-8">
     <title>Configuración - CMS BASE</title>
-    <link rel="stylesheet" href="../assets/css/themify-icons.css">
-    <link rel="stylesheet" href="css/admin.css">
-    <style>
-        .config-form h3 { color: #1db954; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .config-form label { display: block; color: #efefef; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; }
-        .config-form input[type="text"], .config-form input[type="number"], .config-form input[type="password"] { 
-            width: 100%; padding: 12px; margin-bottom: 20px; background: #252525; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;
-        }
-        .config-form input:focus { border-color: #1db954; outline: none; }
-        .alert { background: #1b3321; color: #88ffaa; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #1db954; }
-    </style>
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/backend.css">
+    <link rel="shortcut icon" href="img/iconos/favicon.ico">
 </head>
-<body>
-    <?php include_once 'sec-header.php'; ?>
+<body style="padding: 40px;">
 
-    <div class="main-wrapper" style="display: flex;">
-        <?php include_once 'sec-aside.php'; ?>
+    <header style="margin-bottom: 40px;">
+        <h1><i class="ti-settings"></i> Configuración del Sistema</h1>
+        <p style="color:var(--texto-suave)">Gestión de parámetros globales de CMS BASE.</p>
+    </header>
 
-        <main class="content-area" style="padding: 40px; flex-grow: 1; background: #121212; color: #fff;">
-            <h1>Configuración General</h1>
+    <?php if($mensaje): ?>
+        <div class="alerta alerta-exito animated"><?php echo $mensaje; ?></div>
+    <?php endif; ?>
+
+    <div class="form-card animated">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             
-            <?php if($mensaje): ?>
-                <div class="alert"><?php echo $mensaje; ?></div>
-            <?php endif; ?>
+            <label>Días de persistencia de sesión</label>
+            <input type="number" name="recuerdame" class="campo" value="<?php echo $OPC['recuerdame'] ?? '30'; ?>">
+            
+            <label style="margin-bottom:30px; cursor:pointer; display:flex; align-items:center;">
+                <input type="checkbox" name="registro" <?php echo (($OPC['registro'] ?? '0') == '1') ? 'checked' : ''; ?> style="margin-right:10px; width:20px; height:20px;">
+                ¿Permitir nuevos registros en el frontend?
+            </label>
 
-            <form method="POST" class="config-form" style="max-width: 700px;">
-                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                
-                <h3>Seguridad y Acceso</h3>
-                <label for="recuerdame">Duración de sesión (días):</label>
-                <input type="number" name="recuerdame" id="recuerdame" value="<?php echo e($OPC['recuerdame'] ?? '30'); ?>">
-                
-                <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 30px; color: #1db954;">
-                    <input type="checkbox" name="registro" <?php echo (($OPC['registro'] ?? '0') == '1') ? 'checked' : ''; ?> style="width:20px; height:20px; margin-right: 15px;">
-                    ¿Permitir nuevos registros de usuarios?
-                </label>
+            <h3 style="border-top: 1px solid var(--borde); padding-top:20px;">Servidor SMTP (Envío de correos)</h3>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label>Host SMTP</label>
+                    <input type="text" name="mailer_host" class="campo" value="<?php echo $OPC['mailer_host'] ?? ''; ?>">
+                </div>
+                <div>
+                    <label>Puerto</label>
+                    <input type="text" name="mailer_port" class="campo" value="<?php echo $OPC['mailer_port'] ?? '465'; ?>">
+                </div>
+            </div>
 
-                <h3>Configuración de Correo</h3>
-                <label>Servidor SMTP (Host)</label>
-                <input type="text" name="mailer_host" value="<?php echo e($OPC['mailer_host'] ?? ''); ?>">
-                <label>Usuario (Email)</label>
-                <input type="text" name="mailer_username" value="<?php echo e($OPC['mailer_username'] ?? ''); ?>">
-                <label>Contraseña</label>
-                <input type="password" name="mailer_password" value="<?php echo e($OPC['mailer_password'] ?? ''); ?>">
-                <label>Puerto</label>
-                <input type="text" name="mailer_port" value="<?php echo e($OPC['mailer_port'] ?? '465'); ?>">
+            <label>Usuario / Email</label>
+            <input type="text" name="mailer_username" class="campo" value="<?php echo $OPC['mailer_username'] ?? ''; ?>">
+            
+            <label>Contraseña</label>
+            <input type="password" name="mailer_password" class="campo" value="<?php echo $OPC['mailer_password'] ?? ''; ?>">
 
-                <button type="submit" name="save_options" style="background: #1db954; color: #000; padding: 15px 40px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;">
-                    <i class="ti-save"></i> Guardar Cambios
-                </button>
-            </form>
-        </main>
+            <button type="submit" name="save_options" class="boton-principal">
+                <i class="ti-save"></i> ACTUALIZAR NÚCLEO
+            </button>
+        </form>
     </div>
-    <?php include_once 'sec-footer.php'; ?>
+
+    <script src="plugins/jquery.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>

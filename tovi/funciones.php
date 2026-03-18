@@ -2,27 +2,19 @@
 /* tovi/funciones.php */
 
 /**
- * CMS BASE - FUNCIONES CORE (TOVI)
+ * CMS BASE - FUNCIONES NÚCLEO (TOVI)
  */
 
 function url_base() {
     global $OPC;
+    if (!empty($OPC['url_sitio'])) return rtrim($OPC['url_sitio'], '/');
     
-    // Si la URL está definida en la base de datos, la usamos limpiando la barra final
-    if (!empty($OPC['url_sitio'])) {
-        return rtrim($OPC['url_sitio'], '/');
-    }
-    
-    // Detectamos el protocolo y host
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
-    
-    // Detectamos el subdirectorio (si existe)
     $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
     $dir = str_replace('/tovi', '', dirname($script));
     $dir = str_replace('/public', '', $dir);
     
-    // Construimos la URL y aplicamos rtrim para que NUNCA termine en /
     $url = $protocol . "://" . $host . $dir;
     return rtrim($url, '/');
 }
@@ -33,61 +25,39 @@ function asset($ruta) {
     return url_base() . '/' . ltrim($ruta, '/') . '?v=' . $version;
 }
 
-function pacheco_instalar($datos_db) {
-    $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
-    if ($conn->connect_error) return false;
-    $db_name = $conn->real_escape_string($datos_db['name']);
-    $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $conn->select_db($db_name);
+// --- GESTIÓN DE BASE DE DATOS (Nombres en Español) ---
 
-    $sql = "
-    CREATE TABLE IF NOT EXISTS opciones (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        opcion_key VARCHAR(50) UNIQUE,
-        opcion_dato TEXT
-    );
-    CREATE TABLE IF NOT EXISTS usuarios (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nombre VARCHAR(100),
-        nickname VARCHAR(50),
-        email VARCHAR(100) UNIQUE,
-        password VARCHAR(255),
-        rol VARCHAR(20),
-        foto VARCHAR(255),
-        activo TINYINT(1) DEFAULT 0,
-        token_verificacion VARCHAR(100),
-        session_token VARCHAR(100),
-        fecha DATETIME
-    );";
-    
-    $conn->multi_query($sql);
-    while ($conn->next_result()) {;} // Limpiar resultados
-
-    return true;
-}
-
-function get_opcion($key) {
+function guardar_opcion($clave, $valor) {
     global $conexion;
     if (!$conexion) return false;
-    $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
-    $stmt->bind_param("s", $key);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    return ($res->num_rows > 0) ? $res->fetch_assoc()['opcion_dato'] : false;
-}
-
-function update_opcion($key, $valor) {
-    global $conexion;
     $stmt = $conexion->prepare("INSERT INTO opciones (opcion_key, opcion_dato) VALUES (?, ?) ON DUPLICATE KEY UPDATE opcion_dato = VALUES(opcion_dato)");
-    $stmt->bind_param("ss", $key, $valor);
+    $stmt->bind_param("ss", $clave, $valor);
     return $stmt->execute();
 }
 
-// --- FUNCIONES DE USUARIO ---
+function leer_opcion($clave) {
+    global $conexion;
+    if (!$conexion) return null;
+    $stmt = $conexion->prepare("SELECT opcion_dato FROM opciones WHERE opcion_key = ? LIMIT 1");
+    $stmt->bind_param("s", $clave);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($row = $res->fetch_assoc()) return $row['opcion_dato'];
+    return null;
+}
 
-function create_user_admin($nombre, $nickname, $email, $rol, $password) {
+// --- GESTIÓN DE USUARIOS CORE ---
+
+function usuario_existe($email) {
+    global $conexion;
+    $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    return $stmt->get_result()->num_rows > 0;
+}
+
+function crear_usuario_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    // Seguridad: BCRYPT es el estándar del CMS BASE
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
@@ -95,20 +65,54 @@ function create_user_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
-function create_user_pendiente($nombre, $nickname, $email, $rol, $password) {
+function crear_usuario_temporal($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $token = bin2hex(random_bytes(32));
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
     $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura, $token);
-    return ($stmt->execute()) ? $token : false;
+    if ($stmt->execute()) return $token;
+    return false;
 }
 
-function user_existe($email) {
-    global $conexion;
-    $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    return ($stmt->get_result()->num_rows > 0);
+function pacheco_instalar($datos_db) {
+    $conn = @new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass']);
+    if ($conn->connect_error) return false;
+
+    $db_name = $conn->real_escape_string($datos_db['name']);
+    $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $conn->select_db($db_name);
+
+    $sql = "
+    CREATE TABLE IF NOT EXISTS `opciones` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `opcion_key` varchar(100) NOT NULL,
+      `opcion_dato` longtext DEFAULT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `opcion_key` (`opcion_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+    CREATE TABLE IF NOT EXISTS `usuarios` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `nombre` varchar(100) DEFAULT NULL,
+      `nickname` varchar(50) DEFAULT NULL,
+      `email` varchar(100) NOT NULL,
+      `password` varchar(255) NOT NULL,
+      `rol` varchar(20) DEFAULT 'user',
+      `fecha` datetime DEFAULT NULL,
+      `activo` tinyint(1) DEFAULT 0,
+      `token_verificacion` varchar(100) DEFAULT NULL,
+      `session_token` varchar(255) DEFAULT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ";
+
+    if ($conn->multi_query($sql)) {
+        do { if ($result = $conn->store_result()) $result->free(); } while ($conn->next_result());
+    }
+
+    $config_content = "<?php\n\$DB_DATOS = [\n    'host' => '{$datos_db['host']}',\n    'user' => '{$datos_db['user']}',\n    'pass' => '{$datos_db['pass']}',\n    'name' => '{$datos_db['name']}'\n];\n";
+    return file_put_contents(__DIR__ . '/../api/config.php', $config_content);
 }
