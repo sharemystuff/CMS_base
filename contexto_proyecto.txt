@@ -13,7 +13,7 @@
 1. DETALLES DE ENTORNO LOCAL DE DESARROLLO
 ============================================================
 - El entorno de desarrollo de Pelín funciona con XAMPP. 
-- Pelín está corriendo CMS BASE en un servidor virtual al que accede a traves de "https://www.cmsbase.mahg/"
+- Pelín está corriendo CMS BASE en un servidor virtual al que accede a traves de "https://www.cmsbase.mahg/" y reside localmente en D:\WWW\cmsBase\
 - Corre bajo https gracias a mkcert, lo que nos permite implementar código PHP listo para producción, para entornos seguros basados en https.  
 - Dispone además de otro servidor virtual "https://www.lab.mahg/" que usa como "laboratorio" de pruebas de diferentes cosas. Podemos usarlo para ejecutar desde allí scripts maliciosos de prueba que ataquen https://www.cmsbase.mahg/ y así encontrar vulnerabilidades que mejorar.
 Tener sus proyectos con https le ayuda a desarrollarlos sin problemas de http inseguro. Evita problemas como no poder cargar ciertos servicios porque estan en https y el proyecto de Pelín en http solamente. 
