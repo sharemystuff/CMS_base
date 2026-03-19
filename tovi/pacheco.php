@@ -89,17 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
 <head>
     <meta charset="UTF-8">
     <title>Pacheco - Instalador CMS BASE</title>
-    <link rel="stylesheet" href="../assets/css/estilos.css">
-    <style>
-        body { background: var(--oscuro); color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .inst-card { background: #fff; color: #333; padding: 40px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        h1 { font-size: 1.5rem; color: var(--primario); text-align: center; }
-        .campo { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .boton { width: 100%; padding: 15px; background: var(--primario); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    </style>
+    <link rel="stylesheet" href="<?php echo recurso('admin/css/backend.css'); ?>">
 </head>
-<body>
-    <div class="inst-card">
+<body class="standalone">
+    <div class="form-card">
         <?php if($fase == 1): ?>
             <h1>Configuración DB</h1>
             <form method="POST">
@@ -110,17 +103,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
                 <input type="password" name="db_pass" class="campo" placeholder="Password DB">
                 <input type="text" name="db_name" class="campo" placeholder="Nombre DB">
                 <input type="text" name="url_sitio" class="campo" value="<?php echo $url_sugerida; ?>">
-                <button type="submit" name="instalar_db" class="boton">INSTALAR</button>
+                <button type="submit" name="instalar_db" class="boton-p" style="width:100%">INSTALAR</button>
             </form>
         <?php elseif($fase == 2): ?>
-            <h1>Admin inicial</h1>
+            <h1 style="text-align:center; color:var(--primario); margin-bottom:20px;">Admin inicial</h1>
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 
                 <input type="text" name="admin_nombre" class="campo" placeholder="Nombre">
                 <input type="email" name="admin_email" class="campo" placeholder="Email">
                 <input type="password" name="admin_pass" class="campo" placeholder="Password">
-                <button type="submit" name="crear_admin" class="boton">FINALIZAR</button>
+                <button type="submit" name="crear_admin" class="boton-p" style="width:100%">FINALIZAR</button>
             </form>
         <?php else: ?>
             <div style="text-align:center;">
