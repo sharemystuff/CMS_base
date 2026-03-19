@@ -21,6 +21,10 @@ function url_base() {
 }
 
 function recurso($ruta) {
+    // Si es externa (empieza con http, https o //), devolver intacta
+    if (strpos($ruta, 'http') === 0 || strpos($ruta, '//') === 0) {
+        return $ruta;
+    }
     $clean_ruta = ltrim($ruta, '/');
     $full_path = __DIR__ . '/../' . $clean_ruta;
     $version = file_exists($full_path) ? filemtime($full_path) : '1.0';
