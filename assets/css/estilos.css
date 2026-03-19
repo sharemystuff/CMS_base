@@ -81,3 +81,34 @@ body { font-family: 'Outfit', sans-serif; background: var(--f-cuerpo); color: va
 .f-alerta { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; text-align: center; }
 .f-error { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
 .f-exito { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+
+/* --- PÁGINA 404 --- */
+.page-404 {
+    background: #121212;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+}
+.page-404 .error-box { max-width: 400px; padding: 20px; }
+.page-404 h1 { color: #7A006C; font-size: 8rem; margin: 0; font-weight: 800; line-height: 1; }
+.page-404 p { color: #a4b0be; font-size: 1.2rem; margin: 20px 0 40px 0; }
+
+.boton-404 {
+    background: #7A006C;
+    color: #fff;
+    padding: 15px 35px;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    transition: 0.3s;
+    display: inline-block;
+}
+.boton-404:hover {
+    transform: scale(1.05);
+    background: #FF00E4;
+    color: #121212;
+}

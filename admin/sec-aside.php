@@ -17,7 +17,7 @@ $active_id = $page_config['menu_id'] ?? '';
                         </div>
                     </li>
 
-                    <li class="link enlace <?php echo $active_id === 'perfil' ? 'activo' : ''; ?>" enlace="pag-perfil">
+                    <li class="link enlace <?php echo $active_id === 'perfil' ? 'activo' : ''; ?>" enlace="perfil">
                         <div class="menu-item">
                             <i class="ti-face-smile"></i> <span class="movil">Mi perfil</span>
                         </div>
