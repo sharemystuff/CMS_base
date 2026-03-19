@@ -19,5 +19,12 @@
     <?php if(!empty($page_config['scripts'])): foreach($page_config['scripts'] as $js): ?>
         <script src="<?php echo recurso($js); ?>"></script>
     <?php endforeach; endif; ?>
+
+    <!-- Mensajes Flash inyectados desde PHP -->
+    <?php if(!empty($script_mensaje)): ?>
+    <script>
+        $(document).ready(function() { <?php echo $script_mensaje; ?> });
+    </script>
+    <?php endif; ?>
 </body>
 </html>

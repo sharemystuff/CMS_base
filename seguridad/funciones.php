@@ -39,7 +39,7 @@ function validarCSRF($token_recibido) {
 function iniciar_sesion($email, $password) {
     global $conexion;
     
-    $stmt = $conexion->prepare("SELECT id, nombre, password, rol, activo, admin FROM usuarios WHERE email = ? LIMIT 1");
+    $stmt = $conexion->prepare("SELECT id, nombre, password, rol, activo, admin, imagen FROM usuarios WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $resultado = $stmt->get_result();
@@ -54,6 +54,7 @@ function iniciar_sesion($email, $password) {
             $_SESSION['user_nombre'] = $usuario['nombre'];
             $_SESSION['user_rol'] = $usuario['rol'];
             $_SESSION['user_modo'] = $usuario['admin']; // Guardamos preferencia en sesión
+            $_SESSION['user_imagen'] = $usuario['imagen']; // Guardamos avatar en sesión
             
             return true;
         }
@@ -78,7 +79,7 @@ function intentar_auto_login($conexion) {
         $token_recibido = $_COOKIE['session_token'];
         $token_hash = hash('sha256', $token_recibido);
 
-        $stmt = $conexion->prepare("SELECT id, nombre, rol, admin FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
+        $stmt = $conexion->prepare("SELECT id, nombre, rol, admin, imagen FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
         $stmt->bind_param("s", $token_hash);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -89,6 +90,7 @@ function intentar_auto_login($conexion) {
             $_SESSION['user_nombre'] = $user['nombre'];
             $_SESSION['user_rol'] = $user['rol'];
             $_SESSION['user_modo'] = $user['admin'];
+            $_SESSION['user_imagen'] = $user['imagen'];
             return true;
         }
     }
@@ -107,4 +109,17 @@ function restringir_acceso($roles_permitidos) {
         header("Location: " . url_base() . "/public/login.php?error=permiso_denegado");
         exit;
     }
+}
+
+/**
+ * Genera una contraseña aleatoria segura.
+ */
+function contrasenia_aleatoria($longitud = 16) {
+    $caracteres = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*+';
+    $password = '';
+    $max = strlen($caracteres) - 1;
+    for ($i = 0; $i < $longitud; $i++) {
+        $password .= $caracteres[random_int(0, $max)];
+    }
+    return $password;
 }

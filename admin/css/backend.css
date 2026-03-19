@@ -63,3 +63,35 @@ footer { grid-area: footer; padding: 20px; text-align: center; font-size: 0.8rem
 .modal-actions { display: flex; justify-content: space-between; margin-top: 10px; }
 .btn-cancelar { background: #e74c3c; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
 .btn-aceptar { background: #2ecc71; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+
+/* Tabs Navegación */
+.tabs-nav { display: flex; border-bottom: 1px solid var(--borde); margin-bottom: 25px; gap: 25px; }
+.tab-link { padding: 10px 0; cursor: pointer; color: var(--texto-suave); border-bottom: 3px solid transparent; font-weight: 600; transition: 0.3s; font-size: 1.1rem; }
+.tab-link:hover { color: var(--primario); }
+.tab-link.active { color: var(--primario); border-bottom-color: var(--primario); }
+.tab-content { display: none; animation: fadeIn 0.4s; }
+.tab-content.active { display: block; }
+
+/* Password Wrapper */
+.input-pass-wrapper { position: relative; display: flex; align-items: center; width: 100%; margin: 8px 0 20px; }
+.input-pass-wrapper input { margin: 0; padding-right: 45px; }
+.btn-eye { position: absolute; right: 0; height: 100%; width: 40px; cursor: pointer; color: var(--texto-suave); background: none; border: none; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+.btn-eye:hover { color: var(--primario); }
+
+/* Generador de Password */
+.no-copy { user-select: none; -webkit-user-select: none; -moz-user-select: none; cursor: default; }
+.pass-generator { display: flex; align-items: center; gap: 10px; background: var(--borde); padding: 10px; border-radius: 6px; border: 1px solid var(--borde); }
+.pass-display { font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 1px; color: var(--primario); flex-grow: 1; font-size: 1.1rem; text-align: center; }
+.btn-gen-action { cursor: pointer; border: none; background: var(--panel); padding: 8px 12px; border-radius: 4px; color: var(--texto); transition: 0.2s; font-size: 0.9rem; border: 1px solid transparent; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.btn-gen-action:hover { border-color: var(--primario); color: var(--primario); }
+.btn-use-pass { background: var(--primario); color: #fff; font-weight: 600; }
+.btn-use-pass:hover { background: var(--secundario); color: #000; border-color: transparent; }
+
+/* Modal de Mensajes (Alertas Bonitas) */
+.modal-mini { max-width: 380px; text-align: center; align-items: center; }
+.modal-icon { font-size: 3.5rem; margin: 10px 0; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.tipo-exito { color: #2ecc71; }
+.tipo-error { color: #e74c3c; }
+.modal-btn { background: var(--primario); color: #fff; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: 700; margin-top: 10px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+.modal-btn:hover { background: var(--secundario); color: #000; transform: scale(1.05); }
+@keyframes popIn { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }

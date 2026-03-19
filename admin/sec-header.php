@@ -5,6 +5,15 @@
 $page_config = $page_config ?? [];
 $titulo_pagina = $page_config['titulo'] ?? 'CMS BASE';
 $modo = $_SESSION['user_modo'] ?? 'claro';
+
+// Parche de integridad: Si la sesión está activa pero le falta el dato de imagen (login antiguo), lo recuperamos.
+if (!isset($_SESSION['user_imagen']) && isset($_SESSION['user_id'])) {
+    $datos_frescos = obtener_datos_usuario($_SESSION['user_id']);
+    $_SESSION['user_imagen'] = $datos_frescos['imagen'] ?? '';
+}
+
+// Determinamos el avatar del usuario (Sesión o Default)
+$avatar_usuario = !empty($_SESSION['user_imagen']) ? recurso($_SESSION['user_imagen']) : recurso('admin/img/perfil.jpg');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -41,7 +50,7 @@ $modo = $_SESSION['user_modo'] ?? 'claro';
                         <i class="ti-shine"></i>
                     </button>
                     <div class="user-profile">
-                        <img src="<?php echo recurso('admin/img/perfil.jpg'); ?>" alt="Perfil" class="avatar">
+                        <img src="<?php echo $avatar_usuario; ?>" alt="Perfil" class="avatar">
                         <span class="nombre"><?php echo e($_SESSION['user_nombre']); ?></span>
                     </div>
                     <a href="logout.php" class="btn-header logout" title="Cerrar sesión">

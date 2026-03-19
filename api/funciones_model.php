@@ -168,3 +168,31 @@ function procesar_avatar($usu_id, $base64_string) {
 
     return ['status' => true, 'url' => $url_db];
 }
+
+function cambiar_password_usuario($id, $actual, $nueva) {
+    global $conexion;
+    
+    // 1. Obtener hash actual
+    $stmt = $conexion->prepare("SELECT password FROM usuarios WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    
+    if ($row = $res->fetch_assoc()) {
+        // 2. Verificar contraseña actual
+        if (password_verify($actual, $row['password'])) {
+            // 3. Validar complejidad nueva (Básico: longitud)
+            if (strlen($nueva) < 8) return ['status' => false, 'msg' => 'La contraseña nueva es muy corta (mínimo 8 caracteres).'];
+            
+            // 4. Actualizar con nuevo hash
+            $nuevo_hash = password_hash($nueva, PASSWORD_BCRYPT);
+            $stmt_up = $conexion->prepare("UPDATE usuarios SET password = ? WHERE id = ?");
+            $stmt_up->bind_param("si", $nuevo_hash, $id);
+            
+            if($stmt_up->execute()) return ['status' => true, 'msg' => 'Contraseña actualizada correctamente.'];
+        } else {
+            return ['status' => false, 'msg' => 'La contraseña actual no es correcta.'];
+        }
+    }
+    return ['status' => false, 'msg' => 'Error de usuario.'];
+}
