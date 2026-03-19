@@ -39,7 +39,7 @@ function validarCSRF($token_recibido) {
 function iniciar_sesion($email, $password) {
     global $conexion;
     
-    $stmt = $conexion->prepare("SELECT id, nombre, password, rol, activo FROM usuarios WHERE email = ? LIMIT 1");
+    $stmt = $conexion->prepare("SELECT id, nombre, password, rol, activo, admin FROM usuarios WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $resultado = $stmt->get_result();
@@ -53,6 +53,7 @@ function iniciar_sesion($email, $password) {
             $_SESSION['user_id'] = $usuario['id'];
             $_SESSION['user_nombre'] = $usuario['nombre'];
             $_SESSION['user_rol'] = $usuario['rol'];
+            $_SESSION['user_modo'] = $usuario['admin']; // Guardamos preferencia en sesión
             
             return true;
         }
@@ -77,7 +78,7 @@ function intentar_auto_login($conexion) {
         $token_recibido = $_COOKIE['session_token'];
         $token_hash = hash('sha256', $token_recibido);
 
-        $stmt = $conexion->prepare("SELECT id, nombre, rol FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
+        $stmt = $conexion->prepare("SELECT id, nombre, rol, admin FROM usuarios WHERE session_token = ? AND activo = 1 LIMIT 1");
         $stmt->bind_param("s", $token_hash);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -87,6 +88,7 @@ function intentar_auto_login($conexion) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
             $_SESSION['user_rol'] = $user['rol'];
+            $_SESSION['user_modo'] = $user['admin'];
             return true;
         }
     }

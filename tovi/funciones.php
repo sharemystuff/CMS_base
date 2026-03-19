@@ -62,7 +62,7 @@ function crear_usuario_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
-    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo) VALUES (?, ?, ?, ?, ?, ?, 1)");
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, admin) VALUES (?, ?, ?, ?, ?, ?, 1, 'claro')");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura);
     return $stmt->execute();
 }
@@ -87,10 +87,19 @@ function crear_usuario_temporal($nombre, $nickname, $email, $rol, $password) {
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $token = bin2hex(random_bytes(32));
-    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+    $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion, admin) VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'claro')");
     $stmt->bind_param("sssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura, $token);
     if ($stmt->execute()) return $token;
     return false;
+}
+
+function actualizar_preferencia_admin($usu_id, $modo) {
+    global $conexion;
+    // Solo permitimos valores controlados
+    $modo_seguro = ($modo === 'oscuro') ? 'oscuro' : 'claro';
+    $stmt = $conexion->prepare("UPDATE usuarios SET admin = ? WHERE id = ?");
+    $stmt->bind_param("si", $modo_seguro, $usu_id);
+    return $stmt->execute();
 }
 
 // --- EL INSTALADOR (PACHECO) ---
@@ -120,6 +129,7 @@ function pacheco_instalar($datos_db) {
       `password` varchar(255) NOT NULL,
       `rol` varchar(20) DEFAULT 'user',
       `imagen` varchar(255) DEFAULT NULL,
+      `admin` varchar(50) DEFAULT 'claro',
       `fecha` datetime DEFAULT NULL,
       `activo` tinyint(1) DEFAULT 0,
       `token_verificacion` varchar(100) DEFAULT NULL,

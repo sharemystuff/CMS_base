@@ -4,6 +4,7 @@ include_once __DIR__ . '/../api/main.php';
 
 restringir_acceso(['admin', 'owner']);
 
+$modo = $_SESSION['user_modo'] ?? 'claro';
 $mensaje = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     if (validarCSRF($_POST['csrf_token'] ?? '')) {
@@ -28,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     <link rel="stylesheet" href="<?php echo recurso('admin/css/backend.css'); ?>">
     <link rel="shortcut icon" href="<?php echo recurso('admin/img/iconos/favicon.ico'); ?>">
 </head>
-<body style="padding: 40px;">
+<body class="<?php echo $modo === 'oscuro' ? 'modo-noche' : ''; ?>" style="padding: 40px;">
 
     <header style="margin-bottom: 40px;">
         <h1><i class="ti-settings"></i> Configuración del Sistema</h1>
