@@ -4,7 +4,6 @@ include_once __DIR__ . '/../api/main.php';
 
 restringir_acceso(['admin', 'owner']);
 
-$modo = $_SESSION['user_modo'] ?? 'claro';
 $mensaje = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
     if (validarCSRF($_POST['csrf_token'] ?? '')) {
@@ -19,18 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
         $mensaje = "✅ Configuración guardada en el núcleo.";
     }
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Configuración - CMS BASE</title>
-    <link rel="stylesheet" href="<?php echo recurso('admin/css/themify-icons.css'); ?>">
-    <link rel="stylesheet" href="<?php echo recurso('admin/css/backend.css'); ?>">
-    <link rel="shortcut icon" href="<?php echo recurso('admin/img/iconos/favicon.ico'); ?>">
-</head>
-<body class="<?php echo $modo === 'oscuro' ? 'modo-noche' : ''; ?>" style="padding: 40px;">
 
+$page_config = [
+    'titulo' => 'Configuración',
+    'menu_id' => 'sitio-web'
+];
+
+include 'sec-header.php';
+?>
+<main class="animated fadeIn">
     <header style="margin-bottom: 40px;">
         <h1><i class="ti-settings"></i> Configuración del Sistema</h1>
         <p style="color:var(--texto-suave)">Gestión de parámetros globales de CMS BASE.</p>
@@ -76,8 +72,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
             </button>
         </form>
     </div>
-
-    <script src="<?php echo recurso('assets/plugins/jquery.js'); ?>"></script>
-    <script src="<?php echo recurso('admin/js/admin.js'); ?>"></script>
-</body>
-</html>
+</main>
+<?php include 'sec-footer.php'; ?>

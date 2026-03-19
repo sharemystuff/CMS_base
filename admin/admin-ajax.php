@@ -30,6 +30,16 @@ if (isset($_POST['action'])) {
         echo json_encode(['status' => 'success', 'guardado' => $res]);
         exit;
     }
+
+    if ($_POST['action'] === 'subir_imagen_perfil') {
+        if (empty($_POST['imagen'])) {
+            echo json_encode(['status' => 'error', 'message' => 'No se recibió ninguna imagen']);
+            exit;
+        }
+        $resultado = procesar_avatar($_SESSION['user_id'], $_POST['imagen']);
+        echo json_encode($resultado);
+        exit;
+    }
 }
 
 echo json_encode(['status' => 'error', 'message' => 'Acción no reconocida']);

@@ -102,6 +102,22 @@ function mandar_correo($destinatario, $asunto, $cuerpo_html) {
 // ============================================================
 // GESTIÓN DE DATOS ADICIONALES DE LOS USUARIOS
 // ============================================================
+
+function obtener_datos_usuario($id) {
+    global $conexion;
+    $stmt = $conexion->prepare("SELECT id, nombre, nickname, email, rol, imagen, fecha, admin FROM usuarios WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc();
+}
+
+function actualizar_datos_usuario($id, $nombre, $nickname) {
+    global $conexion;
+    $stmt = $conexion->prepare("UPDATE usuarios SET nombre = ?, nickname = ? WHERE id = ?");
+    $stmt->bind_param("ssi", $nombre, $nickname, $id);
+    return $stmt->execute();
+}
+
 function actualizar_meta_usuario($usu_id, $usu_key, $usu_valor) {
     // Aprovechamos la función del núcleo que ya gestiona UPSERT (Insertar o Actualizar) de forma segura
     return crear_meta_usuario($usu_id, $usu_key, $usu_valor);
@@ -114,4 +130,41 @@ function borrar_meta_usuario($usu_id, $usu_key) {
     $stmt = $conexion->prepare("DELETE FROM usuarios_meta WHERE usu_id = ? AND usu_key = ?");
     $stmt->bind_param("is", $usu_id, $usu_key);
     return $stmt->execute();
+}
+
+function procesar_avatar($usu_id, $base64_string) {
+    global $conexion;
+    
+    // 1. Limpieza y validación base
+    $data = explode(',', $base64_string);
+    $contenido = base64_decode(end($data));
+    
+    if (!$contenido) return ['status' => false, 'msg' => 'Error al decodificar imagen'];
+
+    // 2. Crear imagen desde string
+    $imagen = @imagecreatefromstring($contenido);
+    if (!$imagen) return ['status' => false, 'msg' => 'El archivo no es una imagen válida'];
+
+    // 3. Preparar directorio
+    $dir_relativo = 'subidas/perfiles/';
+    $dir_absoluto = __DIR__ . '/../' . $dir_relativo;
+    
+    if (!file_exists($dir_absoluto)) {
+        mkdir($dir_absoluto, 0755, true);
+    }
+
+    // 4. Guardar como JPG Calidad 80
+    $nombre_archivo = 'avatar_' . $usu_id . '_' . time() . '.jpg';
+    $ruta_final = $dir_absoluto . $nombre_archivo;
+    
+    imagejpeg($imagen, $ruta_final, 80);
+    imagedestroy($imagen);
+
+    // 5. Actualizar DB
+    $url_db = $dir_relativo . $nombre_archivo;
+    $stmt = $conexion->prepare("UPDATE usuarios SET imagen = ? WHERE id = ?");
+    $stmt->bind_param("si", $url_db, $usu_id);
+    $stmt->execute();
+
+    return ['status' => true, 'url' => $url_db];
 }
