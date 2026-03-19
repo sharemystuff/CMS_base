@@ -97,3 +97,21 @@ function mandar_correo($destinatario, $asunto, $cuerpo_html) {
         return false;
     }
 }
+
+
+// ============================================================
+// GESTIÓN DE DATOS ADICIONALES DE LOS USUARIOS
+// ============================================================
+function actualizar_meta_usuario($usu_id, $usu_key, $usu_valor) {
+    // Aprovechamos la función del núcleo que ya gestiona UPSERT (Insertar o Actualizar) de forma segura
+    return crear_meta_usuario($usu_id, $usu_key, $usu_valor);
+}
+
+function borrar_meta_usuario($usu_id, $usu_key) {
+    global $conexion;
+    if (empty($usu_id) || empty($usu_key)) return false;
+
+    $stmt = $conexion->prepare("DELETE FROM usuarios_meta WHERE usu_id = ? AND usu_key = ?");
+    $stmt->bind_param("is", $usu_id, $usu_key);
+    return $stmt->execute();
+}

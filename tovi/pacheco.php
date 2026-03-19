@@ -6,10 +6,24 @@ require_once __DIR__ . '/funciones.php';
 require_once __DIR__ . '/../seguridad/funciones.php';
 require_once __DIR__ . '/../api/main.php';
 
+// Asegurar sesión para CSRF incluso si main.php no la inició por falta de config
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error = ""; 
 $fase = 1; 
+$config_existe = file_exists(__DIR__ . '/../api/config.php');
 
-if (isset($conexion) && !$conexion->connect_error) {
+// LÓGICA DE BLOQUEO: Si hay config, no permitimos volver a la fase 1
+if ($config_existe) {
+    if (!isset($conexion) || $conexion->connect_error) {
+        die("<div style='font-family:sans-serif;text-align:center;padding:50px;color:#333;'><h1>Error de Conexión</h1><p>El sistema está instalado (existe config.php) pero no conecta a la base de datos.</p><p>Para reinstalar, elimine manualmente <b>api/config.php</b>.</p></div>");
+    }
+    
     $estado_actual = leer_opcion('estado'); // <--- Actualizado
     
     if ($estado_actual === 'instalando') {
@@ -21,35 +35,52 @@ if (isset($conexion) && !$conexion->connect_error) {
 }
 
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-$url_sugerida = $protocol . "://" . $_SERVER['HTTP_HOST'];
+$url_sugerida = $protocol . "://" . e($_SERVER['HTTP_HOST'] ?? 'localhost');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
-    $datos_db = [
-        'host' => $_POST['db_host'], 
-        'user' => $_POST['db_user'], 
-        'pass' => $_POST['db_pass'], 
-        'name' => $_POST['db_name']
-    ];
-
-    if (pacheco_instalar($datos_db)) {
-        $conexion = new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass'], $datos_db['name']);
-        
-        guardar_opcion('url_sitio', $_POST['url_sitio']); // <--- Actualizado
-        guardar_opcion('estado', 'instalando');         // <--- Actualizado
-        
-        header("Refresh:0");
-        exit;
+    if (!validarCSRF($_POST['csrf_token'] ?? '')) {
+        $error = "Error de seguridad (Token CSRF inválido).";
+    } elseif ($config_existe) {
+        $error = "El sistema ya está configurado. Elimine config.php para reinstalar.";
     } else {
-        $error = "Error: No se pudo conectar o crear la base de datos.";
+        $datos_db = [
+            'host' => limpiar_entrada($_POST['db_host']), 
+            'user' => limpiar_entrada($_POST['db_user']), 
+            'pass' => $_POST['db_pass'], // Contraseña tal cual
+            'name' => limpiar_entrada($_POST['db_name'])
+        ];
+
+        if (pacheco_instalar($datos_db)) {
+            // Intentamos conectar inmediatamente para configurar opciones iniciales
+            $conexion = new mysqli($datos_db['host'], $datos_db['user'], $datos_db['pass'], $datos_db['name']);
+            
+            guardar_opcion('url_sitio', limpiar_entrada($_POST['url_sitio'])); // <--- Actualizado
+            guardar_opcion('estado', 'instalando');         // <--- Actualizado
+            
+            header("Refresh:0");
+            exit;
+        } else {
+            $error = "Error: No se pudo conectar o crear la base de datos. Verifique credenciales.";
+        }
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
-    if (crear_usuario_admin($_POST['admin_nombre'], 'admin', $_POST['admin_email'], 'admin', $_POST['admin_pass'])) {
-        guardar_opcion('estado', 'live'); // <--- Actualizado
-        $fase = 3;
+    if (!validarCSRF($_POST['csrf_token'] ?? '')) {
+        $error = "Error de seguridad (CSRF).";
+    } elseif ($fase !== 2) {
+        $error = "Fase incorrecta.";
     } else {
-        $error = "Error al crear el usuario administrador.";
+        $nombre = limpiar_entrada($_POST['admin_nombre']);
+        $email  = limpiar_entrada($_POST['admin_email']);
+        $pass   = $_POST['admin_pass'];
+        
+        if (crear_usuario_admin($nombre, 'admin', $email, 'admin', $pass)) {
+            guardar_opcion('estado', 'live'); // <--- Actualizado
+            $fase = 3;
+        } else {
+            $error = "Error al crear el usuario administrador.";
+        }
     }
 }
 ?>
@@ -72,6 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
         <?php if($fase == 1): ?>
             <h1>Configuración DB</h1>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                
                 <input type="text" name="db_host" class="campo" value="localhost">
                 <input type="text" name="db_user" class="campo" value="root">
                 <input type="password" name="db_pass" class="campo" placeholder="Password DB">
@@ -82,6 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_admin'])) {
         <?php elseif($fase == 2): ?>
             <h1>Admin inicial</h1>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                
                 <input type="text" name="admin_nombre" class="campo" placeholder="Nombre">
                 <input type="email" name="admin_email" class="campo" placeholder="Email">
                 <input type="password" name="admin_pass" class="campo" placeholder="Password">

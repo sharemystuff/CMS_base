@@ -30,6 +30,15 @@ aside { grid-area: aside; background: #000; color: #fff; padding: 30px 20px; }
 main { grid-area: main; padding: 40px; }
 footer { grid-area: footer; padding: 20px; text-align: center; font-size: 0.8rem; color: var(--texto-suave); }
 
+/* Elementos del Header */
+.header-left, .header-right { display: flex; align-items: center; gap: 20px; }
+.logo { font-weight: 800; font-size: 1.2rem; color: var(--primario); letter-spacing: -0.5px; }
+.btn-header { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--texto-suave); display: flex; align-items: center; gap: 8px; text-decoration: none; transition: 0.3s; }
+.btn-header:hover, .btn-header.logout:hover { color: var(--primario); }
+.user-profile { display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--borde); border-right: 1px solid var(--borde); padding: 0 20px; margin: 0 10px; }
+.user-profile .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--borde); }
+.user-profile .nombre { font-size: 0.9rem; font-weight: 600; }
+
 /* Formularios */
 .form-card { background: var(--panel); padding: 30px; border-radius: 12px; border: 1px solid var(--borde); max-width: 600px; }
 .campo { width: 100%; padding: 12px; margin: 8px 0 20px; background: var(--input-bg); border: 1px solid var(--borde); border-radius: 6px; color: var(--texto); }

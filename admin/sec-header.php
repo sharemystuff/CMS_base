@@ -4,13 +4,26 @@
  * CMS BASE - Fragmento de Cabecera Visual
  */
 ?>
-<header class="main-navbar" style="background: #000; padding: 10px 20px; border-bottom: 1px solid #333;">
-    <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="logo">
-            <span style="color: #1db954; font-weight: bold; font-size: 1.2rem;">CMS BASE</span>
+<header>
+    <!-- Izquierda: Marca y Link al sitio -->
+    <div class="header-left">
+        <div class="logo">CMS BASE</div>
+        <a href="<?php echo url_base(); ?>" target="_blank" class="btn-header" title="Ir al sitio web">
+            <i class="ti-world"></i> <span>Ver Sitio</span>
+        </a>
+    </div>
+
+    <!-- Derecha: Herramientas y Usuario -->
+    <div class="header-right">
+        <button id="btnModo" class="btn-header" title="Cambiar Modo Día/Noche">
+            <i class="ti-shine"></i>
+        </button>
+        <div class="user-profile">
+            <img src="<?php echo recurso('admin/img/perfil.jpg'); ?>" alt="Perfil" class="avatar">
+            <span class="nombre"><?php echo e($_SESSION['user_nombre']); ?></span>
         </div>
-        <div class="user-info">
-            <span style="font-size: 0.8rem; color: #aaa;">Conectado como: <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong></span>
-        </div>
+        <a href="logout.php" class="btn-header logout" title="Cerrar sesión">
+            <i class="ti-power-off"></i>
+        </a>
     </div>
 </header>

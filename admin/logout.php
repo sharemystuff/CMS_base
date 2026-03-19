@@ -1,4 +1,5 @@
 <?php
+/* admin/logout.php */
 /**
  * CMS BASE - Cierre de Sesión Seguro
  */

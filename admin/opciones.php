@@ -24,9 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
 <head>
     <meta charset="UTF-8">
     <title>Configuración - CMS BASE</title>
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/backend.css">
-    <link rel="shortcut icon" href="img/iconos/favicon.ico">
+    <link rel="stylesheet" href="<?php echo recurso('admin/css/themify-icons.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('admin/css/backend.css'); ?>">
+    <link rel="shortcut icon" href="<?php echo recurso('admin/img/iconos/favicon.ico'); ?>">
 </head>
 <body style="padding: 40px;">
 
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_options'])) {
         </form>
     </div>
 
-    <script src="plugins/jquery.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="<?php echo recurso('assets/plugins/jquery.js'); ?>"></script>
+    <script src="<?php echo recurso('admin/js/admin.js'); ?>"></script>
 </body>
 </html>

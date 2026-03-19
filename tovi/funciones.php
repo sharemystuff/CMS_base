@@ -67,6 +67,21 @@ function crear_usuario_admin($nombre, $nickname, $email, $rol, $password) {
     return $stmt->execute();
 }
 
+function crear_meta_usuario($usu_id, $usu_key, $usu_valor) {
+    global $conexion;
+    // Validación de seguridad: Aseguramos que existan datos. Permitimos el 0 como valor válido.
+    if (empty($usu_id) || empty($usu_key) || (empty($usu_valor) && $usu_valor !== '0' && $usu_valor !== 0)) {
+        return "Error: Faltan datos obligatorios para crear el metadato.";
+    }
+    // Sentencia preparada para evitar inyección SQL
+    $stmt = $conexion->prepare("INSERT INTO usuarios_meta (usu_id, usu_key, usu_valor) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE usu_valor = VALUES(usu_valor)");
+    if (!$stmt) return "Error crítico de base de datos: " . $conexion->error;
+    $stmt->bind_param("iss", $usu_id, $usu_key, $usu_valor);
+    $resultado = $stmt->execute() ? $stmt->insert_id : "Error al guardar en base de datos: " . $stmt->error;
+    $stmt->close();
+    return $resultado;
+}
+
 function crear_usuario_temporal($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
     $pass_segura = password_hash($password, PASSWORD_BCRYPT);
@@ -104,6 +119,7 @@ function pacheco_instalar($datos_db) {
       `email` varchar(100) NOT NULL,
       `password` varchar(255) NOT NULL,
       `rol` varchar(20) DEFAULT 'user',
+      `imagen` varchar(255) DEFAULT NULL,
       `fecha` datetime DEFAULT NULL,
       `activo` tinyint(1) DEFAULT 0,
       `token_verificacion` varchar(100) DEFAULT NULL,
@@ -119,12 +135,21 @@ function pacheco_instalar($datos_db) {
       `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+    CREATE TABLE IF NOT EXISTS `usuarios_meta` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `usu_id` int(11) NOT NULL,
+      `usu_key` varchar(50) NOT NULL,
+      `usu_valor` varchar(255) DEFAULT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `unique_meta` (`usu_id`, `usu_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ";
 
     if ($conn->multi_query($sql)) {
         do { if ($result = $conn->store_result()) $result->free(); } while ($conn->next_result());
     }
 
-    $config_content = "<?php\n\$DB_DATOS = [\n    'host' => '{$datos_db['host']}',\n    'user' => '{$datos_db['user']}',\n    'pass' => '{$datos_db['pass']}',\n    'name' => '{$datos_db['name']}'\n];\n";
+    $config_content = "<?php\n\$DB_DATOS = " . var_export($datos_db, true) . ";\n";
     return file_put_contents(__DIR__ . '/../api/config.php', $config_content);
 }

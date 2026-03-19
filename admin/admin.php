@@ -11,8 +11,8 @@ $modo = $_COOKIE['modo_oscuro'] ?? '0';
 <head>
     <meta charset="UTF-8">
     <title>Panel - CMS BASE</title>
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/backend.css">
+    <link rel="stylesheet" href="<?php echo recurso('admin/css/themify-icons.css'); ?>">
+    <link rel="stylesheet" href="<?php echo recurso('admin/css/backend.css'); ?>">
 </head>
 <body class="<?php echo $modo == '1' ? 'modo-noche' : ''; ?>">
 
@@ -34,7 +34,7 @@ $modo = $_COOKIE['modo_oscuro'] ?? '0';
         </div>
     </div>
 
-    <script src="plugins/jquery.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="<?php echo recurso('assets/plugins/jquery.js'); ?>"></script>
+    <script src="<?php echo recurso('admin/js/admin.js'); ?>"></script>
 </body>
 </html>
