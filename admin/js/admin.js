@@ -193,6 +193,103 @@ $(document).ready(function() {
         }, 'json');
     });
 
+    // --- LÓGICA DE IMAGEN SEO (16:9, Min 1280x720) ---
+    const $inputSeo = $('#inputSeo');
+    const $modalSeo = $('#modalCropperSeo');
+    const $imageSeoCrop = $('#imageToCropSeo');
+    let cropperSeo;
+
+    $('.seo-image-wrapper').on('click', function() {
+        $inputSeo.click();
+    });
+
+    $inputSeo.on('change', function(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (/^image\/\w+$/.test(file.type)) {
+                
+                // Validar dimensiones antes de abrir cropper
+                const img = new Image();
+                img.onload = function() {
+                    if (this.width < 1280 || this.height < 720) {
+                        // Error: Imagen muy chica
+                        if ($('#cmsModalErrorSeo').length === 0) {
+                            $('body').append(`
+                                <div id="cmsModalErrorSeo" class="modal-overlay" style="z-index: 2100;">
+                                    <div class="modal-content modal-mini animated bounceIn">
+                                        <div class="modal-icon"><i class="ti-ruler-alt-2 tipo-error"></i></div>
+                                        <h3>¡Imagen muy pequeña!</h3>
+                                        <p style="color:var(--texto);">La imagen debe ser de al menos <strong>1280x720</strong> píxeles para asegurar buena calidad.</p>
+                                        <button class="modal-btn" id="btnReintentarSeo">SELECCIONAR OTRA</button>
+                                    </div>
+                                </div>
+                            `);
+                            // Al cerrar, abrir explorador de nuevo
+                            $('#btnReintentarSeo').on('click', function() {
+                                $('#cmsModalErrorSeo').fadeOut();
+                                $inputSeo.click(); // Reabrir
+                            });
+                        }
+                        $('#cmsModalErrorSeo').css('display', 'flex').hide().fadeIn();
+                        $inputSeo.val('');
+                    } else {
+                        // Todo OK, abrir cropper
+                        const url = URL.createObjectURL(file);
+                        $imageSeoCrop.attr('src', url);
+                        $modalSeo.css('display', 'flex').hide().fadeIn();
+                        
+                        if (cropperSeo) cropperSeo.destroy();
+                        
+                        cropperSeo = new Cropper(document.getElementById('imageToCropSeo'), {
+                            aspectRatio: 16 / 9,
+                            viewMode: 1,
+                            autoCropArea: 1,
+                        });
+                        $inputSeo.val('');
+                    }
+                };
+                img.src = URL.createObjectURL(file);
+
+            } else {
+                cms_mensaje('Por favor selecciona una imagen válida.', 'error');
+            }
+        }
+    });
+
+    $('#btnCancelarCropSeo').on('click', function() {
+        $modalSeo.fadeOut();
+        if (cropperSeo) cropperSeo.destroy();
+    });
+
+    $('#btnAceptarCropSeo').on('click', function() {
+        // Redimensionar a 1280x720 exactos
+        const canvas = cropperSeo.getCroppedCanvas({ width: 1280, height: 720 });
+        const base64 = canvas.toDataURL('image/jpeg', 0.9);
+
+        $.post('admin-ajax.php', {
+            action: 'subir_imagen_seo',
+            imagen: base64,
+            csrf_token: CMS_VARS.csrf_token
+        }, function(resp) {
+            if (resp.status === true) {
+                $('#imgSeoActual').attr('src', resp.full_url + '&t=' + new Date().getTime());
+                $modalSeo.fadeOut();
+                cms_mensaje('Imagen SEO actualizada.', 'exito');
+            } else {
+                cms_mensaje('Error: ' + resp.msg, 'error');
+            }
+        }, 'json');
+    });
+
+    // --- AJAX FORMULARIOS DE OPCIONES ---
+    $('#formSeo, #formAvanzadas').on('submit', function(e) {
+        e.preventDefault();
+        $.post('admin-ajax.php', $(this).serialize(), function(resp) {
+            cms_mensaje(resp.msg, resp.status ? 'exito' : 'error');
+        }, 'json');
+    });
+
     // --- GENERADOR DE CONTRASEÑAS SEGURAS ---
     function generarPassSegura() {
         const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*+";

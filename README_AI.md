@@ -49,6 +49,10 @@ De modo que si necesito hacer pruebas que requieran otro servidor, https://www.l
 - TIPOS DE CONTENIDO: Pelín podrá agregar cualquier "tipo de contenido" al proyecto según las necesidades de su cliente. Bastará con agregar una carpeta dentro de "admin/contenidos/" con los archivos necesarios (estilo plugins) para que se integre de forma robusta al sistema CMS BASE. Cada tipo de contenido tendrá sus propios Items, páginas, js, css, etc, según necesite para su funcionamiento. Los modulos se podrán reutilizar en futuros proyectos.
 - TEMPLATES: Se usarán estructuras estilo templates en el sitio web, para reutilizar codigo. Por ejemplo, el footer y el header tanto de admin como de public tienen el prefijo sec- (sección) y se integran dinamicamente para formar las páginas. Cuando se usen módulos, estos deberán tener sus propios sec-header sec-aside, etc, para tener más flexibilidad con el diseño.
 - USO DE GITHUB: Revisa mi repositorio en todo momento.
+- FILOSOFÍA DE EFICACIA (LA OBSESIÓN): El sistema se desplegará en hostings compartidos económicos y accederá desde conexiones lentas.
+    - **Client-Side Optimization:** Delegar el procesamiento pesado (como redimensionado de imágenes) al navegador para ahorrar CPU del servidor y reducir drásticamente el uso de ancho de banda.
+    - **Simplicidad Robusta:** Evitar frameworks pesados o dependencias de Node.js. PHP puro y eficiente es la norma.
+    - **Legibilidad vs Bytes:** Priorizar nombres de funciones descriptivos en español para el mantenimiento. La optimización de transferencia se logra vía lógica (procesamiento en cliente) y compresión de servidor, no ofuscando el código fuente.
 
 ============================================================
 3. USO DE GITHUB

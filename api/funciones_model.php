@@ -132,41 +132,87 @@ function borrar_meta_usuario($usu_id, $usu_key) {
     return $stmt->execute();
 }
 
-function procesar_avatar($usu_id, $base64_string) {
-    global $conexion;
-    
-    // 1. Limpieza y validación base
-    $data = explode(',', $base64_string);
-    $contenido = base64_decode(end($data));
-    
-    if (!$contenido) return ['status' => false, 'msg' => 'Error al decodificar imagen'];
+// FUNCIÓN UNIVERSAL DE PROCESAMIENTO DE IMÁGENES
+// Detecta automáticamente si es Base64 o Ruta de archivo y gestiona el guardado
+function imagenes($input, $ruta_destino, $nombre_archivo, $ancho = 0, $alto = 0, $calidad = 80) {
+    $imagen = null;
 
-    // 2. Crear imagen desde string
-    $imagen = @imagecreatefromstring($contenido);
-    if (!$imagen) return ['status' => false, 'msg' => 'El archivo no es una imagen válida'];
+    // 1. Detección Inteligente de Entrada
+    // Si la cadena es corta (<1024) y existe como archivo, es una ruta física (upload normal)
+    if (strlen($input) < 1024 && @file_exists($input)) {
+        $contenido = file_get_contents($input);
+        $imagen = @imagecreatefromstring($contenido);
+    } else {
+        // Si no, asumimos que es una cadena Base64
+        if (strpos($input, 'base64,') !== false) {
+            $data = explode('base64,', $input);
+            $input = end($data);
+        }
+        $contenido = base64_decode($input);
+        if ($contenido) $imagen = @imagecreatefromstring($contenido);
+    }
 
-    // 3. Preparar directorio
-    $dir_relativo = 'subidas/perfiles/';
-    $dir_absoluto = __DIR__ . '/../' . $dir_relativo;
-    
+    if (!$imagen) return ['status' => false, 'msg' => 'Formato de imagen no reconocido o archivo ilegible.'];
+
+    // 2. Preparar Directorio
+    $dir_absoluto = __DIR__ . '/../' . $ruta_destino;
     if (!file_exists($dir_absoluto)) {
         mkdir($dir_absoluto, 0755, true);
     }
 
-    // 4. Guardar como JPG Calidad 80
-    $nombre_archivo = 'avatar_' . $usu_id . '_' . time() . '.jpg';
-    $ruta_final = $dir_absoluto . $nombre_archivo;
-    
-    imagejpeg($imagen, $ruta_final, 80);
-    imagedestroy($imagen);
+    // 3. Redimensionar (Solo si se solicitan dimensiones y la imagen actual difiere)
+    // OPTIMIZACIÓN: Si el navegador ya envió el tamaño correcto, ahorramos CPU saltando este paso
+    if ($ancho > 0 && $alto > 0 && ($ancho != imagesx($imagen) || $alto != imagesy($imagen))) {
+        $nuevo = imagecreatetruecolor($ancho, $alto);
+        $blanco = imagecolorallocate($nuevo, 255, 255, 255); // Fondo blanco para JPG
+        imagefilledrectangle($nuevo, 0, 0, $ancho, $alto, $blanco);
+        
+        imagecopyresampled($nuevo, $imagen, 0, 0, 0, 0, $ancho, $alto, imagesx($imagen), imagesy($imagen));
+        imagedestroy($imagen);
+        $imagen = $nuevo;
+    }
 
-    // 5. Actualizar DB
-    $url_db = $dir_relativo . $nombre_archivo;
+    // 4. Guardar como JPG
+    $ruta_final = $dir_absoluto . $nombre_archivo;
+    if (imagejpeg($imagen, $ruta_final, $calidad)) {
+        imagedestroy($imagen);
+        return ['status' => true, 'url' => $ruta_destino . $nombre_archivo];
+    }
+
+    return ['status' => false, 'msg' => 'Error crítico al escribir la imagen en el disco.'];
+}
+
+function procesar_avatar($usu_id, $base64_string) {
+    global $conexion;
+    $nombre_archivo = 'avatar_' . $usu_id . '_' . time() . '.jpg';
+    
+    // Usamos la función universal (600x600, calidad 80)
+    $res = imagenes($base64_string, 'subidas/perfiles/', $nombre_archivo, 600, 600, 80);
+    
+    if (!$res['status']) return $res;
+
+    // Actualizar DB
+    $url_db = $res['url'];
     $stmt = $conexion->prepare("UPDATE usuarios SET imagen = ? WHERE id = ?");
     $stmt->bind_param("si", $url_db, $usu_id);
     $stmt->execute();
 
-    return ['status' => true, 'url' => $url_db];
+    return $res;
+}
+
+function procesar_imagen_seo($base64_string) {
+    $nombre_archivo = 'og_image_' . time() . '.jpg';
+    
+    // Usamos la función universal (1280x720, calidad 90)
+    $res = imagenes($base64_string, 'subidas/', $nombre_archivo, 1280, 720, 90);
+    
+    if (!$res['status']) return $res;
+
+    // Guardar ruta en Opciones
+    $url_db = $res['url'];
+    guardar_opcion('op_imagen', $url_db);
+
+    return $res;
 }
 
 function cambiar_password_usuario($id, $actual, $nueva) {

@@ -104,3 +104,7 @@ body.standalone { display: flex; justify-content: center; align-items: center; m
 .standalone .intro-box { text-align: center; }
 .standalone h2 { margin-bottom: 20px; }
 .standalone .alerta-error { background: #fff5f5; color: #c53030; padding: 10px; border-radius: 5px; margin-top: 15px; text-align: center; border: 1px solid #feb2b2; }
+
+/* Imagen SEO (Rectangular) */
+.seo-image-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; border: 2px solid var(--borde); cursor: pointer; margin-bottom: 20px; }
+.seo-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }

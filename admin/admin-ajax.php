@@ -78,6 +78,53 @@ if (isset($_POST['action'])) {
         }
         exit;
     }
+
+    // --- OPCIONES SEO ---
+    if ($_POST['action'] === 'guardar_seo') {
+        $nombre = limpiar_entrada($_POST['nombre_sitio'] ?? '');
+        $desc   = limpiar_entrada($_POST['descripcion_sitio'] ?? '');
+        
+        guardar_opcion('nombre_sitio', $nombre);
+        guardar_opcion('descripcion_sitio', $desc);
+        
+        echo json_encode(['status' => true, 'msg' => 'Información SEO actualizada.']);
+        exit;
+    }
+
+    if ($_POST['action'] === 'subir_imagen_seo') {
+        if (empty($_POST['imagen'])) {
+            echo json_encode(['status' => 'error', 'message' => 'No se recibió imagen']);
+            exit;
+        }
+        $resultado = procesar_imagen_seo($_POST['imagen']);
+        
+        if ($resultado['status']) {
+            $resultado['full_url'] = recurso($resultado['url']); 
+        }
+        echo json_encode($resultado);
+        exit;
+    }
+
+    // --- OPCIONES AVANZADAS ---
+    if ($_POST['action'] === 'guardar_opciones_avanzadas') {
+        // Solo admin o owner (doble chequeo aunque la página ya restringe)
+        if ($_SESSION['user_rol'] !== 'admin' && $_SESSION['user_rol'] !== 'owner') {
+            echo json_encode(['status' => false, 'msg' => 'Permiso denegado']);
+            exit;
+        }
+        
+        guardar_opcion('recuerdame', limpiar_entrada($_POST['recuerdame']));
+        guardar_opcion('registro', isset($_POST['registro']) ? '1' : '0');
+        
+        // Configuración SMTP
+        guardar_opcion('mailer_host', limpiar_entrada($_POST['mailer_host'] ?? ''));
+        guardar_opcion('mailer_username', limpiar_entrada($_POST['mailer_username'] ?? ''));
+        guardar_opcion('mailer_password', $_POST['mailer_password'] ?? ''); // Password crudo (puede tener caracteres especiales)
+        guardar_opcion('mailer_port', limpiar_entrada($_POST['mailer_port'] ?? ''));
+        
+        echo json_encode(['status' => true, 'msg' => 'Opciones avanzadas guardadas.']);
+        exit;
+    }
 }
 
 echo json_encode(['status' => 'error', 'message' => 'Acción no reconocida']);
