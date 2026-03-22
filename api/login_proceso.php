@@ -13,7 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Usamos la función centralizada traducida
-    if (iniciar_sesion($email, $pass)) {
+    // IMPORTANTE: Concatenamos el PEPPER antes de verificar
+    $pepper = defined('PEPPER') ? PEPPER : '';
+    if (iniciar_sesion($email, $pass . $pepper)) {
         
         if ($recuerdame) {
             $token = bin2hex(random_bytes(32));

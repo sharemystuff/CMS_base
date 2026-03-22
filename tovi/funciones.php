@@ -64,7 +64,8 @@ function usuario_existe($email) {
 
 function crear_usuario_admin($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
+    $pepper = defined('PEPPER') ? PEPPER : '';
+    $pass_segura = password_hash($password . $pepper, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, admin) VALUES (?, ?, ?, ?, ?, ?, 1, 'claro')");
     $stmt->bind_param("ssssss", $nombre, $nickname, $email, $rol, $fecha, $pass_segura);
@@ -88,7 +89,8 @@ function crear_meta_usuario($usu_id, $usu_key, $usu_valor) {
 
 function crear_usuario_temporal($nombre, $nickname, $email, $rol, $password) {
     global $conexion; 
-    $pass_segura = password_hash($password, PASSWORD_BCRYPT);
+    $pepper = defined('PEPPER') ? PEPPER : '';
+    $pass_segura = password_hash($password . $pepper, PASSWORD_BCRYPT);
     $fecha = date("Y-m-d H:i:s");
     $token = bin2hex(random_bytes(32));
     $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, nickname, email, rol, fecha, password, activo, token_verificacion, admin) VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'claro')");
@@ -164,6 +166,13 @@ function pacheco_instalar($datos_db) {
         do { if ($result = $conn->store_result()) $result->free(); } while ($conn->next_result());
     }
 
-    $config_content = "<?php\n\$DB_DATOS = " . var_export($datos_db, true) . ";\n";
+    // Preparamos el contenido de config.php separando el Pepper
+    $pepper = $datos_db['pepper'] ?? '';
+    unset($datos_db['pepper']); // No lo guardamos en el array de DB para mantener orden
+
+    $config_content = "<?php\n/* api/config.php - Generado por Pacheco */\n\n";
+    $config_content .= "define('PEPPER', '" . $pepper . "');\n\n";
+    $config_content .= "\$DB_DATOS = " . var_export($datos_db, true) . ";\n";
+
     return file_put_contents(__DIR__ . '/../api/config.php', $config_content);
 }

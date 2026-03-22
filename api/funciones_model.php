@@ -136,46 +136,78 @@ function borrar_meta_usuario($usu_id, $usu_key) {
 // Detecta automáticamente si es Base64 o Ruta de archivo y gestiona el guardado
 function imagenes($input, $ruta_destino, $nombre_archivo, $ancho = 0, $alto = 0, $calidad = 80) {
     $imagen = null;
+    $contenido = null;
 
     // 1. Detección Inteligente de Entrada
     // Si la cadena es corta (<1024) y existe como archivo, es una ruta física (upload normal)
     if (strlen($input) < 1024 && @file_exists($input)) {
         $contenido = file_get_contents($input);
-        $imagen = @imagecreatefromstring($contenido);
     } else {
         // Si no, asumimos que es una cadena Base64
         if (strpos($input, 'base64,') !== false) {
             $data = explode('base64,', $input);
             $input = end($data);
         }
-        $contenido = base64_decode($input);
-        if ($contenido) $imagen = @imagecreatefromstring($contenido);
+        $contenido = base64_decode($input, true); // true = modo estricto
     }
 
-    if (!$imagen) return ['status' => false, 'msg' => 'Formato de imagen no reconocido o archivo ilegible.'];
+    if (!$contenido) return ['status' => false, 'msg' => 'No se pudo decodificar la imagen.'];
 
-    // 2. Preparar Directorio
+    // 2. SEGURIDAD EXTREMA: Inspección de Contenido (Threat Mitigation)
+    // A. Detección de código PHP incrustado (Polyglots / Steganography)
+    if (strpos($contenido, '<?php') !== false || strpos($contenido, '<?=') !== false || strpos($contenido, '<script') !== false) {
+        return ['status' => false, 'msg' => 'Amenaza de seguridad detectada en el archivo.'];
+    }
+
+    // B. Validación estricta de MIME Type mediante "Magic Numbers"
+    // Evita que un archivo .php sea renombrado a .jpg y pase
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime_real = $finfo->buffer($contenido);
+    $mimes_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    if (!in_array($mime_real, $mimes_permitidos)) {
+        return ['status' => false, 'msg' => 'Tipo de archivo no permitido: ' . $mime_real];
+    }
+
+    // C. Creación de recurso de imagen (Sanitización inicial por GD)
+    $imagen = @imagecreatefromstring($contenido);
+    if (!$imagen) {
+        return ['status' => false, 'msg' => 'El archivo está corrupto o no es una imagen válida.'];
+    }
+
+    // 3. Preparar Directorio
     $dir_absoluto = __DIR__ . '/../' . $ruta_destino;
+    // Protección contra Path Traversal: basename se asegura en la llamada, pero aquí validamos que exista
     if (!file_exists($dir_absoluto)) {
         mkdir($dir_absoluto, 0755, true);
     }
+    
+    // 4. "LAVADO" DE IMAGEN (Re-encoding)
+    // En lugar de guardar el archivo original, creamos un lienzo NUEVO y copiamos los píxeles.
+    // Esto elimina metadatos EXIF maliciosos, comentarios ocultos y payloads al final del archivo.
+    
+    // Determinamos dimensiones finales
+    $ancho_final = ($ancho > 0) ? $ancho : imagesx($imagen);
+    $alto_final  = ($alto > 0) ? $alto : imagesy($imagen);
 
-    // 3. Redimensionar (Solo si se solicitan dimensiones y la imagen actual difiere)
-    // OPTIMIZACIÓN: Si el navegador ya envió el tamaño correcto, ahorramos CPU saltando este paso
-    if ($ancho > 0 && $alto > 0 && ($ancho != imagesx($imagen) || $alto != imagesy($imagen))) {
-        $nuevo = imagecreatetruecolor($ancho, $alto);
-        $blanco = imagecolorallocate($nuevo, 255, 255, 255); // Fondo blanco para JPG
-        imagefilledrectangle($nuevo, 0, 0, $ancho, $alto, $blanco);
-        
-        imagecopyresampled($nuevo, $imagen, 0, 0, 0, 0, $ancho, $alto, imagesx($imagen), imagesy($imagen));
-        imagedestroy($imagen);
-        $imagen = $nuevo;
-    }
+    $lienzo = imagecreatetruecolor($ancho_final, $alto_final);
+    $fondo_blanco = imagecolorallocate($lienzo, 255, 255, 255); // Fondo para transparencias (al pasar a JPG)
+    imagefilledrectangle($lienzo, 0, 0, $ancho_final, $alto_final, $fondo_blanco);
 
-    // 4. Guardar como JPG
+    // Copiamos y redimensionamos (Sanitización Definitiva)
+    imagecopyresampled($lienzo, $imagen, 0, 0, 0, 0, $ancho_final, $alto_final, imagesx($imagen), imagesy($imagen));
+    
+    // Destruimos la imagen original de la memoria
+    imagedestroy($imagen);
+
+    // 5. Guardar como JPG (Forzamos extensión y formato)
     $ruta_final = $dir_absoluto . $nombre_archivo;
-    if (imagejpeg($imagen, $ruta_final, $calidad)) {
-        imagedestroy($imagen);
+    
+    // Opcional: Interlaced (Progresivo) para carga visual más rápida en conexiones lentas
+    imageinterlace($lienzo, true);
+
+    if (imagejpeg($lienzo, $ruta_final, $calidad)) {
+        imagedestroy($lienzo);
         return ['status' => true, 'url' => $ruta_destino . $nombre_archivo];
     }
 
@@ -224,14 +256,16 @@ function cambiar_password_usuario($id, $actual, $nueva) {
     $stmt->execute();
     $res = $stmt->get_result();
     
+    $pepper = defined('PEPPER') ? PEPPER : '';
+
     if ($row = $res->fetch_assoc()) {
         // 2. Verificar contraseña actual
-        if (password_verify($actual, $row['password'])) {
+        if (password_verify($actual . $pepper, $row['password'])) {
             // 3. Validar complejidad nueva (Básico: longitud)
             if (strlen($nueva) < 8) return ['status' => false, 'msg' => 'La contraseña nueva es muy corta (mínimo 8 caracteres).'];
             
             // 4. Actualizar con nuevo hash
-            $nuevo_hash = password_hash($nueva, PASSWORD_BCRYPT);
+            $nuevo_hash = password_hash($nueva . $pepper, PASSWORD_BCRYPT);
             $stmt_up = $conexion->prepare("UPDATE usuarios SET password = ? WHERE id = ?");
             $stmt_up->bind_param("si", $nuevo_hash, $id);
             

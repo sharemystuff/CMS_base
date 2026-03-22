@@ -47,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['instalar_db'])) {
             'host' => limpiar_entrada($_POST['db_host']), 
             'user' => limpiar_entrada($_POST['db_user']), 
             'pass' => $_POST['db_pass'], // Contraseña tal cual
-            'name' => limpiar_entrada($_POST['db_name'])
+            'name' => limpiar_entrada($_POST['db_name']),
+            'pepper' => bin2hex(random_bytes(32)) // Generamos el secreto del sistema (Pepper)
         ];
 
         if (pacheco_instalar($datos_db)) {

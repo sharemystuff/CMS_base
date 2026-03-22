@@ -22,7 +22,7 @@ De modo que si necesito hacer pruebas que requieran otro servidor, https://www.l
 ============================================================
 2. ESPECIFICACIONES DE DESARROLLO
 ============================================================
-- SEGURIDAD EXTREMA: todo el sitio, especilamente el login debe estar ultra protegido contra todo tipo de amenazas. Debe manejar:
+- SEGURIDAD EXTREMA: todo el sitio, especialamente el login debe estar ultra protegido contra todo tipo de amenazas. Debe manejar:
     - SQL Injection (SQLi)
     - Cross-Site Scripting (XSS)
     - Session Hijacking
@@ -38,6 +38,10 @@ De modo que si necesito hacer pruebas que requieran otro servidor, https://www.l
     - Weak Hashing
     - Acceso Directo a Core
     - Opción Técnica Oculta
+    - Subida de Archivos Sin Restricciones
+    - Spoofing de MIME
+    - Esteganografía Maliciosa
+    - Polyglots
     Períodicamente durante el proceso de desarrollo se pueden realizar tests para probar la seguridad, usando también https://www.lab.mahg/
 - REUTILIZACIÓN DE FUNCIONES: en vez de escribir código php para cada página del sitio, se harán funciones flexibles que permitan aprovechar al máximo el código escrito.
 - NUNCA ROMPER CÓDIGO EXITOSO: si algunas funciones, código o diseño ya funciona bien, no tocarlo al escribir código nuevo.
